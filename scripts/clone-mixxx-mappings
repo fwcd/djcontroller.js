@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Clones Mixxx's mappings into a subdirectory using Git's new sparse checkouts.
+# NOTE: Mixxx mappings may be licensed under a less permissive license (GPLv2).
+
+set -e
+
+cd "$(dirname $0)/.."
+
+mkdir -p checkouts
+
+echo "==> Performing sparse clone of Mixxx..."
+(
+  cd checkouts
+  git clone --depth 1 \
+            --filter blob:none \
+            --sparse \
+            https://github.com/mixxxdj/mixxx.git
+)
+
+echo "==> Performing sparse checkout of controllers..."
+(
+  cd checkouts/mixxx
+  git sparse-checkout set res/controllers
+)
+
+echo "==> Linking controller mappings..."
+ln -s checkouts/mixxx/res/controllers controllers
