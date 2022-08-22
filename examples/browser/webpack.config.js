@@ -11,6 +11,7 @@ const config = {
   output: {
     path: path.resolve(__dirname, "dist"),
   },
+  target: ['web', 'es2015'],
   devServer: {
     open: true,
     host: "localhost",
