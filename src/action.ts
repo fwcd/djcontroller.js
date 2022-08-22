@@ -6,6 +6,7 @@ export interface BaseAction {
 /** A value control type. */
 export type ValueControl = { type: 'crossfader' }
                          | { type: 'volume' }
+                         | { type: 'gain' }
                          | { type: 'lows' }
                          | { type: 'mids' }
                          | { type: 'highs' }

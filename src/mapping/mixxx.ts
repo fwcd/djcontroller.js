@@ -115,8 +115,12 @@ export class MixxxControllerMapping implements ControllerMapping {
   fromMidi(msg: MidiMessage): Action[] {
     const control = this.midiMapping.controls.find(c => c.status === msg.status && c.midino === msg.data[0]);
     const down = msg.data[1] > 0;
+    const value = msg.data[1] / 0x7f;
     const deck = deckFromGroup(control.group);
 
+    // TODO: Factor out press parsing into separate function to reduce boilerplate?
+
+    // Parse simple events
     switch (control.key) {
     case 'play':
       return [{ type: 'press', control: { type: 'play' }, deck, down }];
@@ -132,10 +136,30 @@ export class MixxxControllerMapping implements ControllerMapping {
       return [{ type: 'press', control: { type: 'loopToggle' }, deck, down }];
     case 'sync_enabled':
       return [{ type: 'press', control: { type: 'sync' }, deck, down }];
+    case 'volume':
+      return [{ type: 'value', control: { type: 'volume' }, deck, value }];
+    case 'pregain':
+      return [{ type: 'value', control: { type: 'gain' }, deck, value }];
+    case 'crossfader':
+      return [{ type: 'value', control: { type: 'crossfader' }, value }];
     default:
       break;
     }
 
+    // Parse EQ events
+    if (control.group.includes('EqualizerRack')) {
+      switch (control.key) {
+      case 'parameter1':
+        return [{ type: 'value', control: { type: 'lows' }, deck, value }];
+      case 'parameter2':
+        return [{ type: 'value', control: { type: 'mids' }, deck, value }];
+      case 'parameter3':
+        return [{ type: 'value', control: { type: 'highs' }, deck, value }];
+      }
+    }
+
+    // Parse parameterized events
+    // TODO: Deal with fractions?
     const beatloopToggle = /beatloop_(\d+)_toggle/.exec(control.key);
     if (beatloopToggle) {
       return [{ type: 'press', control: { type: 'loopToggle', beats: parseInt(beatloopToggle[1]) }, deck, down }];
