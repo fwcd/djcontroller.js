@@ -2,8 +2,6 @@ import { Action } from '../action';
 import { MidiMessage } from '../midi';
 import { Output } from '../output';
 
-export * from './mixxx';
-
 /**
  * Represents a DJ controller mapping.
  * Usually a long-lived object since many controller scripts
