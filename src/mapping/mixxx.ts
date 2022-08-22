@@ -1,8 +1,9 @@
 import { XmlDocument, XmlElement } from "@rgrove/parse-xml";
 import parseXml = require("@rgrove/parse-xml");
-import { ControllerMapping } from ".";
+import { ControllerMapping, MappingInfo } from ".";
 import { Action } from "../action";
 import { MidiMessage } from "../midi";
+import { Output } from "../output";
 import { isXmlElement, xmlToObject } from "../utils";
 
 interface BaseMapping {
@@ -23,14 +24,6 @@ interface OutputMapping extends BaseMapping {
   off?: number;
 }
 
-interface MappingInfo {
-  name?: string;
-  author?: string;
-  description?: string;
-  forums?: string;
-  manual?: string;
-}
-
 interface MidiMapping {
   info: MappingInfo;
   // TODO: Use Maps for efficiency?
@@ -46,8 +39,6 @@ function parseMappingInfo(xml: XmlElement): MappingInfo {
     name: childs.name?.text,
     author: childs.author?.text,
     description: childs.description?.text,
-    forums: childs.forums?.text,
-    manual: childs.manual?.text,
   };
 }
 
@@ -88,6 +79,11 @@ function parseMidiMapping(xml: XmlDocument): MidiMapping {
   };
 }
 
+function deckFromGroup(group: string): number | null {
+  const match = /\[Channel(\d+)\]/.exec(group);
+  return match ? parseInt(match[1]) : null;
+}
+
 /**
  * Represents a DJ controller mapping using Mixxx's
  * mapping format.
@@ -112,12 +108,27 @@ export class MixxxControllerMapping implements ControllerMapping {
     return new MixxxControllerMapping(midiMapping, jsMappingSrc);
   }
 
-  toMidi(output: never): MidiMessage[] {
-    // TODO
-    return [];
+  get info(): MappingInfo {
+    return this.midiMapping.info;
   }
 
   fromMidi(msg: MidiMessage): Action[] {
+    const control = this.midiMapping.controls.find(c => c.status === msg.status && c.midino === msg.data[0]);
+    const down = msg.data[1] > 0;
+    const deck = deckFromGroup(control.group);
+
+    switch (control.key) {
+    case 'play':
+      return [{ type: 'press', control: { type: 'play' }, deck, down }];
+    default:
+      break;
+    }
+
+    // TODO: Handle script keys
+    return [];
+  }
+
+  toMidi(output: Output): MidiMessage[] {
     // TODO
     return [];
   }

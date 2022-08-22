@@ -1,4 +1,4 @@
-import { MixxxControllerMapping } from 'dj-controller';
+import { MidiMessage, MixxxControllerMapping } from 'dj-controller';
 
 import mc7000XmlSrc from '../controllers/Denon-MC7000.midi.xml';
 import mc7000JsSrc from '../controllers/Denon-MC7000-scripts.js';
@@ -6,16 +6,22 @@ import mc7000JsSrc from '../controllers/Denon-MC7000-scripts.js';
 // Set up an example mapping (in this case the MC7000 mapping)
 const mapping = MixxxControllerMapping.parse(mc7000XmlSrc, mc7000JsSrc);
 
-// DEBUG
-console.log(JSON.stringify(mapping['midiMapping'], null, 2))
+// Print some info about the mapping
+console.log(JSON.stringify(mapping.info, null, 2))
 
-function handleMIDIMessageEvent(event: any) {
+function handleMidiMessageEvent(event: any) {
   if (!('data' in event)) {
     console.warn('Ignoring MIDI event without data');
     return;
   }
-  const [status, data1, data2] = event.data as Uint8Array;
-  console.log(`MIDI message: Status: ${status.toString(16)}, data1: ${data1.toString(16)}, data2: ${data2.toString(16)}`);
+  const [status, ...data] = event.data as Uint8Array;
+
+  const midiMsg: MidiMessage = { status, data };
+  const actions = mapping.fromMidi(midiMsg);
+
+  if (actions.length > 0) {
+    console.log(`MIDI message: Status: ${status.toString(16)}, data: ${data.map(n => n.toString(16))} -> ${JSON.stringify(actions)}`);
+  }
 }
 
 window.addEventListener('load', async () => {
@@ -27,18 +33,18 @@ window.addEventListener('load', async () => {
   // Request access to MIDI devices
   const midiAccess = await navigator.requestMIDIAccess();
 
-  function registerMIDIListeners() {
+  function registerMidiListeners() {
     let inputCount = 0;
     midiAccess.inputs.forEach(input => {
-      input.addEventListener('midimessage', handleMIDIMessageEvent);
+      input.addEventListener('midimessage', handleMidiMessageEvent);
       inputCount++;
     });
     console.log(`${inputCount} MIDI input(s) available`);
   }
 
   // Register MIDI input listeners
-  registerMIDIListeners();
+  registerMidiListeners();
   midiAccess.addEventListener('statechange', () => {
-    registerMIDIListeners();
+    registerMidiListeners();
   });
 });

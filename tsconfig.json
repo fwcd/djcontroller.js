@@ -3,7 +3,8 @@
     "module": "commonjs",
     "outDir": "./lib",
     "rootDir": "./src",
-    "declaration": true
+    "declaration": true,
+    "target": "ES2015"
   },
   "include": [
     "./src"
