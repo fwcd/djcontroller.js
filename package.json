@@ -20,5 +20,8 @@
   "homepage": "https://github.com/fwcd/djcontroller.js#readme",
   "devDependencies": {
     "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@rgrove/parse-xml": "^3.0.0"
   }
 }
