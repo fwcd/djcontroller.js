@@ -6,5 +6,5 @@ lib
 *.tsbuildinfo
 .env
 docs
-checkouts
-controllers
+/checkouts
+/controllers
