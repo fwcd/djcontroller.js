@@ -4,21 +4,42 @@ export interface BaseAction {
 }
 
 /** A value control type. */
-export type ValueControl = 'crossfader'
-                         | 'volume'
-                         | 'lows'
-                         | 'mids'
-                         | 'highs'
-                         | 'headphoneMix'
-                         | 'sampler';
+export type ValueControl = { type: 'crossfader' }
+                         | { type: 'volume' }
+                         | { type: 'lows' }
+                         | { type: 'mids' }
+                         | { type: 'highs' }
+                         | { type: 'headphoneMix' }
+                         | { type: 'sampler' }
+                         | { type: 'rate' };
 
 /** An action controlling a fader, encoder or similar. */
-export interface SetValueAction extends BaseAction {
-  type: 'setValue';
+export interface ValueAction extends BaseAction {
+  type: 'value';
   control: ValueControl;
   value: number;
 }
 
+/** A control that can either be on or off. */
+export type PressControl = { type: 'play' }
+                         | { type: 'cue' }
+                         | { type: 'slip' }
+                         | { type: 'headphoneCue' }
+                         | { type: 'hotcue', index: number }
+                         | { type: 'roll', beats: number }
+                         | { type: 'jump', beats: number }
+                         | { type: 'loop' }
+                         | { type: 'loopResize', factor: number }
+                         | { type: 'autoLoop' };
+
+/** An action controlling an on/off value. */
+export interface PressAction extends BaseAction {
+  type: 'press';
+  control: PressControl;
+  down: boolean;
+}
+
 /** An action to take by the DJ application. */
-export type Action = SetValueAction;
+export type Action = ValueAction
+                   | PressAction;
 
