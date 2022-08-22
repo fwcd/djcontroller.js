@@ -1,3 +1,2 @@
-function hello() {
-  console.log('Hello world!');
-}
+export * from './action';
+export * from './mapping';
