@@ -1,6 +1,6 @@
-# djcontroller.js
+# DJ Controller JS
 
-[![Build](https://github.com/fwcd/djcontroller.js/actions/workflows/build.yml/badge.svg)](https://github.com/fwcd/djcontroller.js/actions/workflows/build.yml)
+[![Build](https://github.com/fwcd/dj-controller-js/actions/workflows/build.yml/badge.svg)](https://github.com/fwcd/dj-controller-js/actions/workflows/build.yml)
 
 A library for interacting with MIDI DJ controllers in JavaScript.
 

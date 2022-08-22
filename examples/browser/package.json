@@ -1,8 +1,8 @@
 {
-  "name": "djcontroller.js-example-browser",
+  "name": "dj-controller-example-browser",
   "private": true,
   "version": "0.0.1",
-  "description": "Example showcasing djcontroller.js in a browser",
+  "description": "Example showcasing DJ Controller JS in a browser",
   "author": "fwcd",
   "license": "MIT",
   "scripts": {
@@ -24,6 +24,6 @@
     "webpack-dev-server": "^4.10.0"
   },
   "dependencies": {
-    "djcontroller.js": "^0.0.1"
+    "dj-controller": "^0.0.1"
   }
 }
