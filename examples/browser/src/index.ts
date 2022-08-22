@@ -6,6 +6,9 @@ import mc7000JsSrc from '../controllers/Denon-MC7000-scripts.js';
 // Set up an example mapping (in this case the MC7000 mapping)
 const mapping = ControllerMapping.parse(mc7000XmlSrc, mc7000JsSrc);
 
+// DEBUG
+console.log(JSON.stringify(mapping['xmlMapping'], null, 2))
+
 function handleMIDIMessageEvent(event: any) {
   if (!('data' in event)) {
     console.warn('Ignoring MIDI event without data');
