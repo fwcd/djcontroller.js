@@ -114,6 +114,10 @@ export class MixxxControllerMapping implements ControllerMapping {
 
   fromMidi(msg: MidiMessage): Action[] {
     const control = this.midiMapping.controls.find(c => c.status === msg.status && c.midino === msg.data[0]);
+    if (!control) {
+      return [];
+    }
+
     const down = msg.data[1] > 0;
     const value = msg.data[1] / 0x7f;
     const deck = deckFromGroup(control.group);
