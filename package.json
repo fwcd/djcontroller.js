@@ -2,6 +2,10 @@
   "name": "djcontroller.js",
   "version": "0.0.1",
   "description": "Library for interacting with MIDI DJ controllers",
+  "workspaces": [
+    ".",
+    "examples/*"
+  ],
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
