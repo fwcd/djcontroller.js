@@ -5,9 +5,9 @@
     "moduleResolution": "node",
     "module": "ES6",
     "target": "ES2015",
-    "allowJs": true
+    "allowJs": false
   },
   "include": [
     "src/*"
-  ]
+  ],
 }

@@ -8,7 +8,7 @@ import parseXml = require("@rgrove/parse-xml");
 export class ControllerMapping {
   private constructor(
     private readonly xmlMapping: object,
-    private readonly jsMappingSrc: string,
+    private readonly jsMappingSrc?: string,
   ) {}
 
   /**
@@ -18,7 +18,7 @@ export class ControllerMapping {
    * @param jsMappingSrc The JS source of the mapping (if present)
    * @returns The controller mapping proxy
    */
-  static parse(xmlMappingSrc: string, jsMappingSrc: string): ControllerMapping {
+  static parse(xmlMappingSrc: string, jsMappingSrc?: string): ControllerMapping {
     const xmlMapping = parseXml(xmlMappingSrc);
     return new ControllerMapping(xmlMapping, jsMappingSrc);
   }

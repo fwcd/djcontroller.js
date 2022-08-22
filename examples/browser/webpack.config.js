@@ -45,7 +45,7 @@ const config = {
         ],
       },
       {
-        test: /\.midi.xml$/i,
+        test: /\.(midi.xml|js)$/i,
         type: "asset/source",
         include: [path.resolve(__dirname, "controllers")],
       },
