@@ -120,8 +120,25 @@ export class MixxxControllerMapping implements ControllerMapping {
     switch (control.key) {
     case 'play':
       return [{ type: 'press', control: { type: 'play' }, deck, down }];
+    case 'cue_default':
+      return [{ type: 'press', control: { type: 'cue' }, deck, down }];
+    case 'start_stop':
+      return [{ type: 'press', control: { type: 'stopAtStart' }, deck, down }];
+    case 'loop_halve':
+      return [{ type: 'press', control: { type: 'loopResize', factor: 0.5 }, deck, down }];
+    case 'loop_double':
+      return [{ type: 'press', control: { type: 'loopResize', factor: 2 }, deck, down }];
+    case 'beatloop_activate':
+      return [{ type: 'press', control: { type: 'loopToggle' }, deck, down }];
+    case 'sync_enabled':
+      return [{ type: 'press', control: { type: 'sync' }, deck, down }];
     default:
       break;
+    }
+
+    const beatloopToggle = /beatloop_(\d+)_toggle/.exec(control.key);
+    if (beatloopToggle) {
+      return [{ type: 'press', control: { type: 'loopToggle', beats: parseInt(beatloopToggle[1]) }, deck, down }];
     }
 
     // TODO: Handle script keys

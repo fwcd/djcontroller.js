@@ -23,14 +23,15 @@ export interface ValueAction extends BaseAction {
 /** A control that can either be on or off. */
 export type PressControl = { type: 'play' }
                          | { type: 'cue' }
+                         | { type: 'stopAtStart' }
                          | { type: 'slip' }
+                         | { type: 'sync' }
                          | { type: 'headphoneCue' }
                          | { type: 'hotcue', index: number }
                          | { type: 'roll', beats: number }
                          | { type: 'jump', beats: number }
-                         | { type: 'loop' }
-                         | { type: 'loopResize', factor: number }
-                         | { type: 'autoLoop' };
+                         | { type: 'loopToggle', beats?: number }
+                         | { type: 'loopResize', factor: number };
 
 /** An action controlling an on/off value. */
 export interface PressAction extends BaseAction {

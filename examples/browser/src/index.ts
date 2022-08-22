@@ -19,9 +19,7 @@ function handleMidiMessageEvent(event: any) {
   const midiMsg: MidiMessage = { status, data };
   const actions = mapping.fromMidi(midiMsg);
 
-  if (actions.length > 0) {
-    console.log(`MIDI message: Status: ${status.toString(16)}, data: ${data.map(n => n.toString(16))} -> ${JSON.stringify(actions)}`);
-  }
+  console.log(`MIDI message: Status: ${status.toString(16)}, data: ${data.map(n => n.toString(16))} -> ${JSON.stringify(actions)}`);
 }
 
 window.addEventListener('load', async () => {
