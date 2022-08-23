@@ -1,10 +1,15 @@
+/** A 2D vector. */
 export type Vec2 = { x: number; y: number; }
+
+/** A component that can be rendered to a canvas at a given position. */
 export type Component = (ctx: CanvasRenderingContext2D | undefined, start: Vec2) => Vec2;
 
+/** Adds two 2D vectors. */
 function add(lhs: Vec2, rhs: Vec2): Vec2 {
   return { x: lhs.x + rhs.x, y: lhs.y + rhs.y };
 }
 
+/** Composes components horizontally. */
 export function hStack(
   components: Component[],
   options: {
@@ -37,6 +42,7 @@ export function hStack(
   };
 }
 
+/** Composes components vertically. */
 export function vStack(
   components: Component[],
   options: {
@@ -69,6 +75,7 @@ export function vStack(
   };
 }
 
+/** Creates a primitive rectangle component with a fixed size. */
 export function rectangle(
   size: Vec2,
   options: {
@@ -86,12 +93,14 @@ export function rectangle(
   };
 }
 
+/** Creates a primitive empty component with a fixed size. */
 export function spacer(size: Vec2): Component {
   return () => {
     return size;
   };
 }
 
+/** Wraps the given component in padding. */
 export function padding(
   component: Component,
   options: {
