@@ -11,7 +11,7 @@ export type HorizontalAlignment = 'leading' | 'center' | 'trailing';
 export type VerticalAlignment = 'top' | 'center' | 'bottom';
 
 /** A component that can be rendered to a canvas at a given position. */
-export type Component = (ctx: CanvasRenderingContext2D | undefined, start: Vec2) => Vec2;
+export type Component = (ctx: CanvasRenderingContext2D | undefined) => Vec2;
 
 /** Adds two 2D vectors. */
 export function add(lhs: PartialVec2, rhs: PartialVec2): Vec2 {
@@ -53,7 +53,7 @@ export function render(
   } = {}
 ) {
   const start = { x: 0, y: 0 };
-  const size = component(null, start);
+  const size = component(null);
 
   if (options.resizeToFit) {
     if (size.x !== canvas.width) {
@@ -66,12 +66,12 @@ export function render(
 
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  component(ctx, start);
+  component(ctx);
 }
 
 /** Compoutes the size of the given component. */
 function componentSize(component: Component): Vec2 {
-  return component(null, { x: 0, y: 0 });
+  return component(null);
 }
 
 /** Composes components horizontally. */
@@ -84,13 +84,13 @@ export function hStack(
   const alignment = options.alignment ?? 'center';
   const sizes = components.map(componentSize);
   const totalHeight = sizes.reduce((acc, size) => Math.max(acc, size.y), 0);
-  return (ctx, start) => {
-    let pos = start;
+  return (ctx) => {
+    let pos = { x: 0, y: 0 };
     let totalSize = { x: 0, y: 0 };
     components.forEach((component, i) => {
       const size = sizes[i];
       const offset = align(alignment, totalHeight, size.y);
-      component(ctx, add(pos, { y: offset }));
+      translation(component, add(pos, { y: offset }))(ctx);
       pos = add(pos, { x: size.x });
       totalSize = {
         x: totalSize.x + size.x,
@@ -111,13 +111,13 @@ export function vStack(
   const alignment = options.alignment ?? 'center';
   const sizes = components.map(componentSize);
   const totalWidth = sizes.reduce((acc, size) => Math.max(acc, size.x), 0);
-  return (ctx, start) => {
-    let pos = start;
+  return (ctx) => {
+    let pos = { x: 0, y: 0 };
     let totalSize = { x: 0, y: 0 };
     components.forEach((component, i) => {
       const size = sizes[i];
       const offset = align(alignment, totalWidth, size.x);
-      component(ctx, add(pos, { x: offset }));
+      translation(component, add(pos, { x: offset }))(ctx);
       pos = add(pos, { y: size.y });
       totalSize = {
         x: Math.max(totalSize.x, size.x),
@@ -140,14 +140,14 @@ export function zStack(
   const vAlignment = options.vAlignment ?? 'center';
   const sizes = components.map(componentSize);
   const totalSize = sizes.reduce((acc, size) => ({ x: Math.max(acc.x, size.x), y: Math.max(acc.y, size.y) }), { x: 0, y: 0 });
-  return (ctx, start) => {
+  return (ctx) => {
     components.forEach((component, i) => {
       const size = sizes[i];
       const offset = {
         x: align(hAlignment, totalSize.x, size.x),
         y: align(vAlignment, totalSize.y, size.y),
       };
-      component(ctx, add(start, offset));
+      translation(component, offset)(ctx);
     });
     return totalSize;
   };
@@ -160,12 +160,12 @@ export function rectangle(
     fill?: string | CanvasGradient | CanvasPattern
   } = {}
 ): Component {
-  return (ctx, start) => {
+  return (ctx) => {
     if (ctx) {
       if (options.fill) {
         ctx.fillStyle = options.fill;
       }
-      ctx.fillRect(start.x, start.y, size.x, size.y);
+      ctx.fillRect(0, 0, size.x, size.y);
     }
     return size;
   };
@@ -216,11 +216,11 @@ export function translation(
   component: Component,
   offset: Vec2
 ): Component {
-  return (ctx, start) => {
+  return (ctx) => {
     const size = componentSize(component);
     if (ctx) {
       ctx.translate(offset.x, offset.y);
-      component(ctx, start);
+      component(ctx);
       ctx.translate(-offset.x, -offset.y);
     }
     return add(size, offset);
@@ -236,14 +236,14 @@ export function rotation(
   } = {}
 ): Component {
   const size = componentSize(component);
-  return (ctx, start) => {
+  return (ctx) => {
     if (ctx) {
-      const center = add(add(start, scale(size, 0.5)), options.anchorOffset ?? {});
+      const center = add(scale(size, 0.5), options.anchorOffset ?? {});
       ctx.save();
       ctx.translate(center.x, center.y);
       ctx.rotate(angle);
       ctx.translate(-center.x, -center.y);
-      component(ctx, start);
+      component(ctx);
       ctx.restore();
     }
     return size;
