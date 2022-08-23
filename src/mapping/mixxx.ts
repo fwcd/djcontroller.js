@@ -119,6 +119,7 @@ function makeValueAction(group: string, key: string, value: number): ValueAction
   case 'volume':     control = { type: 'volume' };     break;
   case 'pregain':    control = { type: 'gain' };       break;
   case 'crossfader': control = { type: 'crossfader' }; break;
+  case 'rate':       control = { type: 'rate' };       break;
   default:                                             break;
   }
 
@@ -215,13 +216,15 @@ export class MixxxControllerMapping implements ControllerMapping {
     // Extract some commonly used info
     const down = msg.data[1] > 0;
     const value = msg.data[1] / 0x7f;
+    const deck = deckFromGroup(control.group);
 
     if (control.options.includes('script-binding')) {
       // Handle script bindings
       const handler = getByKeyPath(this.scriptContext, ...control.key.split('.'));
       if (handler) {
         this.sharedActions.length = 0;
-        handler();
+        // TODO: Investigate whether these parameters are actually correct
+        handler(deck, control, value, msg.status, control.group);
         return this.sharedActions;
       }
     } else {
