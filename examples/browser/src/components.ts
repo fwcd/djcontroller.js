@@ -18,6 +18,11 @@ export function add(lhs: PartialVec2, rhs: PartialVec2): Vec2 {
   return { x: (lhs.x ?? 0) + (rhs.x ?? 0), y: (lhs.y ?? 0) + (rhs.y ?? 0) };
 }
 
+/** Subtracts two 2D vectors. */
+export function sub(lhs: PartialVec2, rhs: PartialVec2): Vec2 {
+  return { x: (lhs.x ?? 0) - (rhs.x ?? 0), y: (lhs.y ?? 0) - (rhs.y ?? 0) };
+}
+
 /** Scales a 2D vector. */
 export function scale(lhs: PartialVec2, rhs: number): Vec2 {
   return { x: (lhs.x ?? 0) * rhs, y: (lhs.y ?? 0) * rhs };
@@ -199,6 +204,39 @@ export function circle(
   } = {}
 ): Component {
   return ellipse({ x: radius, y: radius }, options);
+}
+
+/** Creates a primitive line component. */
+export function line(
+  start: Vec2,
+  end: Vec2,
+  options: {
+    stroke?: string | CanvasGradient | CanvasPattern,
+    lineWidth?: number,
+    lineCap?: CanvasLineCap,
+  } = {}
+): Component {
+  const min = { x: Math.min(start.x, end.x), y: Math.min(start.y, end.y) };
+  const max = { x: Math.max(start.x, end.x), y: Math.max(start.y, end.y) };
+  const size = sub(max, min);
+  return ctx => {
+    if (ctx) {
+      if (options.stroke) {
+        ctx.strokeStyle = options.stroke;
+      }
+      if (options.lineWidth !== undefined) {
+        ctx.lineWidth = options.lineWidth;
+      }
+      if (options.lineCap) {
+        ctx.lineCap = options.lineCap;
+      }
+      ctx.beginPath();
+      ctx.moveTo(min.x, min.y);
+      ctx.lineTo(max.x, max.y);
+      ctx.stroke();
+    }
+    return size;
+  };
 }
 
 /** Creates a primitive empty component with a fixed size. */

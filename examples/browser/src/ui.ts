@@ -1,4 +1,4 @@
-import { circle, Component, hStack, padding, rectangle, spacer, translation, transpose, Vec2, vStack, zStack } from './components';
+import { circle, Component, hStack, line, padding, rectangle, rotation, spacer, translation, transpose, Vec2, vStack, zStack } from './components';
 import { ControllerState, DeckState } from './state';
 
 function faderView(
@@ -30,9 +30,28 @@ function faderView(
 
 function encoderView(
   value: number,
-  options: {} = {}
+  options: {
+    radius?: number;
+    fill?: string;
+    stroke?: string;
+  } = {}
 ): Component {
-  return circle(20, { fill: 'blue' });
+  const radius = options.radius ?? 20;
+  const fill = options.fill ?? 'black';
+  const stroke = options.stroke ?? 'white';
+  return rotation(
+    zStack([
+      circle(radius, { fill }),
+      line({ x: 0, y: 0 }, { x: 0, y: radius }, {
+        stroke,
+        lineWidth: 3,
+        lineCap: 'round',
+      }),
+    ], {
+      vAlignment: 'top'
+    }),
+    1.5 * Math.PI * (value - 0.5)
+  );
 }
 
 function deckView(deckState: DeckState): Component {
