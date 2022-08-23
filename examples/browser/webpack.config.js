@@ -16,6 +16,9 @@ const config = {
     open: true,
     host: "localhost",
   },
+  // Disable caching so hot reloading works properly
+  // while working on the library.
+  cache: false,
   plugins: [
     new HtmlWebpackPlugin({
       template: "index.html",
