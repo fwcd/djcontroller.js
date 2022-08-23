@@ -177,7 +177,7 @@ export function padding(
     vertical?: boolean,
   } = {}
 ): Component {
-  const size = options.size ?? 10;
+  const size = options.size ?? 5;
   let wrapped = component;
 
   if (options.horizontal ?? true) {

@@ -43,13 +43,11 @@ function mixerView(deckState: DeckState): Component {
 export function controllerView(state: ControllerState): Component {
   return hStack([
     padding(vStack([
-      deckView(state.decks[0]),
-      deckView(state.decks[1]),
+      ...[0, 2].map(i => padding(deckView(state.decks[i]))),
     ])),
-    ...state.decks.map(d => padding(mixerView(d))),
+    ...[2, 0, 1, 3].map(i => padding(mixerView(state.decks[i]))),
     padding(vStack([
-      deckView(state.decks[1]),
-      deckView(state.decks[2]),
+      ...[1, 3].map(i => padding(deckView(state.decks[i]))),
     ])),
   ]);
 }
