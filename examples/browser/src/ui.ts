@@ -62,9 +62,9 @@ function deckView(deckState: DeckState): Component {
 
 function eqView(deckState: DeckState): Component {
   return vStack([
-    encoderView(deckState.highs),
-    encoderView(deckState.mids),
-    encoderView(deckState.lows),
+    encoderView(deckState.highs, { stroke: '#9670ff' }),
+    encoderView(deckState.mids, { stroke: '#1aff00' }),
+    encoderView(deckState.lows, { stroke: '#eb0000' }),
   ].map(c => padding(c, { size: 2, horizontal: false })));
 }
 
