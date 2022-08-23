@@ -89,6 +89,13 @@ function deckFromGroup(group: string): number | null {
  * mapping format.
  */
 export class MixxxControllerMapping implements ControllerMapping {
+  // TODO: Investigate whether MIDI message ordering is guaranteed, e.g.
+  // whether multi-messages for different channels could be interleaved
+  // (and thereby introduce a race condition)
+
+  /** The last received message. Stored to handle multi-messages. */
+  private lastMsg?: MidiMessage;
+
   private constructor(
     private readonly midiMapping: MidiMapping,
     // TODO: Pass a script context instead after evaluating?
@@ -113,11 +120,17 @@ export class MixxxControllerMapping implements ControllerMapping {
   }
 
   handleIncoming(msg: MidiMessage): Action[] {
+    // Update last message
+    const lastMsg = this.lastMsg;
+    this.lastMsg = msg;
+
+    // Find an associated control for the message's status/no-combo
     const control = this.midiMapping.controls.find(c => c.status === msg.status && c.midino === msg.data[0]);
     if (!control) {
       return [];
     }
 
+    // Extract some commonly used info
     const down = msg.data[1] > 0;
     const value = msg.data[1] / 0x7f;
     const deck = deckFromGroup(control.group);
