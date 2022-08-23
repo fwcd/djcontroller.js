@@ -226,6 +226,7 @@ export class MixxxControllerMapping implements ControllerMapping {
 
     // Extract some commonly used info
     const down = msg.data[1] > 0;
+    const rawValue = msg.data[1];
     const value = msg.data[1] / 0x7f;
     const deck = deckFromGroup(control.group);
 
@@ -235,7 +236,7 @@ export class MixxxControllerMapping implements ControllerMapping {
       if (handler) {
         this.sharedActions.length = 0;
         // TODO: Investigate whether these parameters are actually correct
-        handler(deck, control, value, msg.status, control.group);
+        handler(deck, control, rawValue, msg.status, control.group);
         return this.sharedActions;
       }
     } else {
