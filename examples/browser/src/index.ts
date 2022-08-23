@@ -1,7 +1,8 @@
-import { MidiMessage, MixxxControllerMapping } from 'dj-controller';
-
 import mc7000XmlSrc from '../controllers/Denon-MC7000.midi.xml';
 import mc7000JsSrc from '../controllers/Denon-MC7000-scripts.js';
+
+import { MidiMessage, MixxxControllerMapping } from 'dj-controller';
+import { Component, hStack, rectangle, spacer, vStack } from './components';
 
 // Set up an example mapping (in this case the MC7000 mapping)
 const mapping = MixxxControllerMapping.parse(mc7000XmlSrc, mc7000JsSrc);
@@ -22,7 +23,7 @@ function handleMidiMessageEvent(event: any) {
   console.log(`MIDI message: Status: ${status.toString(16)}, data: ${data.map(n => n.toString(16))} -> ${JSON.stringify(actions)}`);
 }
 
-window.addEventListener('load', async () => {
+async function initializeMidi() {
   if (!('requestMIDIAccess' in navigator)) {
     console.warn('Web MIDI is not supported by this browser!');
     return;
@@ -45,4 +46,32 @@ window.addEventListener('load', async () => {
   midiAccess.addEventListener('statechange', () => {
     registerMidiListeners();
   });
+}
+
+function controllerView(): Component {
+  // TODO: An actual view
+  return vStack([
+    hStack([
+      rectangle({ x: 10, y: 30 }, 'red'),
+      rectangle({ x: 23, y: 15 }, 'orange'),
+    ]),
+    hStack([
+      rectangle({ x: 90, y: 20 }, 'yellow'),
+      spacer({ x: 10, y: 0 }),
+      rectangle({ x: 90, y: 42 }, 'green'),
+      rectangle({ x: 90, y: 30 }, 'blue'),
+    ]),
+  ]);
+}
+
+function initializeView() {
+  const canvas = document.getElementById('controller-view') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d');
+
+  controllerView()(ctx, { x: 0, y: 0 });
+}
+
+window.addEventListener('load', async () => {
+  initializeMidi();
+  initializeView();
 });
