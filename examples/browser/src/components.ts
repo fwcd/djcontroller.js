@@ -1,12 +1,20 @@
 /** A 2D vector. */
 export type Vec2 = { x: number; y: number; }
 
+/** A partial 2D vector. */
+export type PartialVec2 = { x?: number; y?: number; }
+
 /** A component that can be rendered to a canvas at a given position. */
 export type Component = (ctx: CanvasRenderingContext2D | undefined, start: Vec2) => Vec2;
 
 /** Adds two 2D vectors. */
-function add(lhs: Vec2, rhs: Vec2): Vec2 {
-  return { x: lhs.x + rhs.x, y: lhs.y + rhs.y };
+function add(lhs: PartialVec2, rhs: PartialVec2): Vec2 {
+  return { x: (lhs.x ?? 0) + (rhs.x ?? 0), y: (lhs.y ?? 0) + (rhs.y ?? 0) };
+}
+
+/** Scales a 2D vector. */
+function scale(lhs: PartialVec2, rhs: number): Vec2 {
+  return { x: (lhs.x ?? 0) * rhs, y: (lhs.y ?? 0) * rhs };
 }
 
 /** Renders the given component to the given canvas. */
@@ -47,7 +55,7 @@ export function hStack(
     let pos = start;
     let totalSize = { x: 0, y: 0 };
     components.forEach((component, i) => {
-      let size = sizes[i];
+      const size = sizes[i];
       let offset: number;
       switch (alignment) {
       case 'top':    offset = 0;                            break;
@@ -55,8 +63,8 @@ export function hStack(
       case 'bottom': offset = totalHeight - size.y;         break;
       default:                                              break;
       }
-      component(ctx, add(pos, { x: 0, y: offset }));
-      pos = add(pos, { x: size.x, y: 0 });
+      component(ctx, add(pos, { y: offset }));
+      pos = add(pos, { x: size.x });
       totalSize = {
         x: totalSize.x + size.x,
         y: Math.max(totalSize.y, size.y),
@@ -80,7 +88,7 @@ export function vStack(
     let pos = start;
     let totalSize = { x: 0, y: 0 };
     components.forEach((component, i) => {
-      let size = sizes[i];
+      const size = sizes[i];
       let offset: number;
       switch (alignment) {
       case 'leading':  offset = 0;                           break;
@@ -88,12 +96,26 @@ export function vStack(
       case 'trailing': offset = totalWidth - size.x;         break;
       default:                                               break;
       }
-      component(ctx, add(pos, { x: offset, y: 0 }));
-      pos = add(pos, { x: 0, y: size.y });
+      component(ctx, add(pos, { x: offset }));
+      pos = add(pos, { y: size.y });
       totalSize = {
         x: Math.max(totalSize.x, size.x),
         y: totalSize.y + size.y,
       };
+    });
+    return totalSize;
+  };
+}
+
+/** Composes components above each other. */
+export function zStack(components: Component[]): Component {
+  const sizes = components.map(c => c(null, { x: 0, y: 0 }));
+  const totalSize = sizes.reduce((acc, size) => ({ x: Math.max(acc.x, size.x), y: Math.max(acc.y, size.y) }), { x: 0, y: 0 });
+  return (ctx, start) => {
+    const center = add(start, scale(totalSize, 0.5));
+    components.forEach((component, i) => {
+      const size = sizes[i];
+      component(ctx, add(center, scale(size, -0.5)));
     });
     return totalSize;
   };
