@@ -118,14 +118,25 @@ export function vStack(
 }
 
 /** Composes components above each other. */
-export function zStack(components: Component[]): Component {
+export function zStack(
+  components: Component[],
+  options: {
+    hAlignment?: HorizontalAlignment,
+    vAlignment?: VerticalAlignment,
+  } = {}
+): Component {
+  const hAlignment = options.hAlignment ?? 'center';
+  const vAlignment = options.vAlignment ?? 'center';
   const sizes = components.map(c => c(null, { x: 0, y: 0 }));
   const totalSize = sizes.reduce((acc, size) => ({ x: Math.max(acc.x, size.x), y: Math.max(acc.y, size.y) }), { x: 0, y: 0 });
   return (ctx, start) => {
-    const center = add(start, scale(totalSize, 0.5));
     components.forEach((component, i) => {
       const size = sizes[i];
-      component(ctx, add(center, scale(size, -0.5)));
+      const offset = {
+        x: align(hAlignment, totalSize.x, size.x),
+        y: align(vAlignment, totalSize.y, size.y),
+      };
+      component(ctx, add(start, offset));
     });
     return totalSize;
   };
