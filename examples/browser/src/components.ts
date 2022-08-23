@@ -9,6 +9,30 @@ function add(lhs: Vec2, rhs: Vec2): Vec2 {
   return { x: lhs.x + rhs.x, y: lhs.y + rhs.y };
 }
 
+/** Renders the given component to the given canvas. */
+export function render(
+  component: Component,
+  canvas: HTMLCanvasElement,
+  options: {
+    resizeToFit?: boolean,
+  } = {}
+) {
+  const start = { x: 0, y: 0 };
+  const size = component(null, start);
+
+  if (options.resizeToFit) {
+    if (size.x !== canvas.width) {
+      canvas.width = size.x;
+    }
+    if (size.y !== canvas.height) {
+      canvas.height = size.y;
+    }
+  }
+
+  const ctx = canvas.getContext('2d');
+  component(ctx, start);
+}
+
 /** Composes components horizontally. */
 export function hStack(
   components: Component[],

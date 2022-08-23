@@ -2,7 +2,7 @@ import mc7000XmlSrc from '../controllers/Denon-MC7000.midi.xml';
 import mc7000JsSrc from '../controllers/Denon-MC7000-scripts.js';
 
 import { MidiMessage, MixxxControllerMapping } from 'dj-controller';
-import { Component, hStack, padding, rectangle, vStack } from './components';
+import { Component, hStack, padding, rectangle, render, vStack } from './components';
 
 // Set up an example mapping (in this case the MC7000 mapping)
 const mapping = MixxxControllerMapping.parse(mc7000XmlSrc, mc7000JsSrc);
@@ -65,9 +65,9 @@ function controllerView(): Component {
 
 function initializeView() {
   const canvas = document.getElementById('controller-view') as HTMLCanvasElement;
-  const ctx = canvas.getContext('2d');
+  const view = controllerView();
 
-  controllerView()(ctx, { x: 0, y: 0 });
+  render(view, canvas, { resizeToFit: true });
 }
 
 window.addEventListener('load', async () => {
