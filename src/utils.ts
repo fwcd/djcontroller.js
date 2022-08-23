@@ -54,16 +54,18 @@ function findTopLevelBindings(jsSrc: string): string[] {
  * Evaluates the given snippet of JS code and returns
  * variables and functions bound at the top level.
  * 
+ * @param args Values to provide that will be in scope during execution
  * @param jsSrc A piece of JS source code
  * @returns An object holding variables and functions bound at the top level
  */
-export function evalToContext(jsSrc: string): object {
+export function evalToContext(jsSrc: string, args: object = {}): object {
   // TODO: Global bindings a la 'varName = ...' still escape.
   // We should investigate isolating the execution context more
   // (web workers?) or at least rewrite them using a regex.
   const varNames = findTopLevelBindings(jsSrc);
-  const script = new Function(`${jsSrc}; return { ${varNames.join(', ')} };`);
-  return script();
+  const argNames = Object.keys(args);
+  const script = new Function(...argNames, `${jsSrc}; return { ${varNames.join(', ')} };`);
+  return script(...argNames.map(a => args[a]));
 }
 
 /**
@@ -73,6 +75,6 @@ export function evalToContext(jsSrc: string): object {
  * @param keyPath The path into the object
  * @returns The value keyed by this path in `value`
  */
-export function getByKeyPath(value: object, keyPath: string[]): any {
+export function getByKeyPath(value: object, ...keyPath: string[]): any {
   return keyPath.reduce((acc, key) => acc ? acc[key] : undefined, value);
 }

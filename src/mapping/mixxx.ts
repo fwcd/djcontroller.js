@@ -1,7 +1,7 @@
 import { XmlDocument, XmlElement } from "@rgrove/parse-xml";
 import parseXml = require("@rgrove/parse-xml");
 import { ControllerMapping, MappingInfo } from ".";
-import { Action } from "../action";
+import { Action, BaseAction, PressAction, PressControl, ValueAction, ValueControl } from "../action";
 import { MidiMessage } from "../midi";
 import { Output } from "../output";
 import { evalToContext, getByKeyPath, isXmlElement, xmlToObject } from "../utils";
@@ -84,6 +84,84 @@ function deckFromGroup(group: string): number | null {
   return match ? parseInt(match[1]) : null;
 }
 
+/** Creates a `PressAction` from the given mapping and `down` state. */
+function makePressAction(group: string, key: string, down: boolean): PressAction | null {
+  const deck = deckFromGroup(group);
+  let control: PressControl | undefined;
+
+  switch (key) {
+  case 'play':              control = { type: 'play' };                    break;
+  case 'cue_default':       control = { type: 'cue' };                     break;
+  case 'start_stop':        control = { type: 'stopAtStart' };             break;
+  case 'loop_halve':        control = { type: 'loopResize', factor: 0.5 }; break;
+  case 'loop_double':       control = { type: 'loopResize', factor: 2 };   break;
+  case 'beatloop_activate': control = { type: 'loopToggle' };              break;
+  case 'sync_enabled':      control = { type: 'sync' };                    break;
+  default:                                                                 break;
+  }
+
+  // Handle parameterized keys
+  // TODO: Deal with fractions?
+  const beatloopToggle = /beatloop_(\d+)_toggle/.exec(key);
+  if (beatloopToggle) {
+    control = { type: 'loopToggle', beats: parseInt(beatloopToggle[1]) };
+  }
+
+  return control ? { type: 'press', control, deck, down } : null;
+}
+
+/** Creates a `ValueAction` from the given mapping and `value`. */
+function makeValueAction(group: string, key: string, value: number): ValueAction | null {
+  const deck = deckFromGroup(group);
+  let control: ValueControl;
+
+  switch (key) {
+  case 'volume':     control = { type: 'volume' };     break;
+  case 'pregain':    control = { type: 'gain' };       break;
+  case 'crossfader': control = { type: 'crossfader' }; break;
+  default:                                             break;
+  }
+
+  // Handle EQ
+  if (group.includes('EqualizerRack')) {
+    switch (key) {
+    case 'parameter1': control = { type: 'lows' };  break;
+    case 'parameter2': control = { type: 'mids' };  break;
+    case 'parameter3': control = { type: 'highs' }; break;
+    default:                                        break;
+    }
+  }
+
+  return control ? { type: 'value', control, value, deck } : null;
+}
+
+/**
+ * Provides the same API as the `engine` object in scripts.
+ * It, however, doesn't actually change any values directly,
+ * instead it writes actions to the passed array (which is
+ * shared with the MixxxControllerMapping instance).
+ */
+class InScriptEngineFacade {
+  constructor(private readonly sharedActions: Action[]) {}
+
+  getValue(group: string, key: string): number {
+    // TODO: Support getValue (this would involve passing some context of the DJ
+    //       application's state to the ControllerMapping and then here)
+    throw new Error('engine.getValue is not supported yet!');
+  }
+
+  setValue(group: string, key: string, value: number) {
+    const action = makeValueAction(group, key, value);
+    if (action) {
+      this.sharedActions.push(action);
+    }
+  }
+
+  setParameter(group: string, key: string, value: number) {
+    this.setValue(group, key, value);
+  }
+}
+
 /**
  * Represents a DJ controller mapping using Mixxx's
  * mapping format.
@@ -99,6 +177,7 @@ export class MixxxControllerMapping implements ControllerMapping {
   private constructor(
     private readonly midiMapping: MidiMapping,
     private readonly scriptContext: object,
+    private readonly sharedActions: Action[],
   ) {}
 
   /**
@@ -111,8 +190,11 @@ export class MixxxControllerMapping implements ControllerMapping {
   static parse(xmlMappingSrc: string, jsMappingSrc?: string): MixxxControllerMapping {
     const xmlMapping = parseXml(xmlMappingSrc);
     const midiMapping = parseMidiMapping(xmlMapping);
-    const scriptContext = jsMappingSrc ? evalToContext(jsMappingSrc) : {};
-    return new MixxxControllerMapping(midiMapping, scriptContext);
+    const sharedActions: Action[] = [];
+    const scriptContext = jsMappingSrc ? evalToContext(jsMappingSrc, {
+      engine: new InScriptEngineFacade(sharedActions),
+    }) : {};
+    return new MixxxControllerMapping(midiMapping, scriptContext, sharedActions);
   }
 
   get info(): MappingInfo {
@@ -133,64 +215,25 @@ export class MixxxControllerMapping implements ControllerMapping {
     // Extract some commonly used info
     const down = msg.data[1] > 0;
     const value = msg.data[1] / 0x7f;
-    const deck = deckFromGroup(control.group);
 
     if (control.options.includes('script-binding')) {
       // Handle script bindings
-      const handler = getByKeyPath(this.scriptContext, control.key.split('.'));
+      const handler = getByKeyPath(this.scriptContext, ...control.key.split('.'));
       if (handler) {
+        this.sharedActions.length = 0;
         handler();
+        return this.sharedActions;
       }
     } else {
       // Handle normal bindings
-      // TODO: Factor out press parsing into separate function to reduce boilerplate?
-
-      // Parse simple events
-      switch (control.key) {
-      case 'play':
-        return [{ type: 'press', control: { type: 'play' }, deck, down }];
-      case 'cue_default':
-        return [{ type: 'press', control: { type: 'cue' }, deck, down }];
-      case 'start_stop':
-        return [{ type: 'press', control: { type: 'stopAtStart' }, deck, down }];
-      case 'loop_halve':
-        return [{ type: 'press', control: { type: 'loopResize', factor: 0.5 }, deck, down }];
-      case 'loop_double':
-        return [{ type: 'press', control: { type: 'loopResize', factor: 2 }, deck, down }];
-      case 'beatloop_activate':
-        return [{ type: 'press', control: { type: 'loopToggle' }, deck, down }];
-      case 'sync_enabled':
-        return [{ type: 'press', control: { type: 'sync' }, deck, down }];
-      case 'volume':
-        return [{ type: 'value', control: { type: 'volume' }, deck, value }];
-      case 'pregain':
-        return [{ type: 'value', control: { type: 'gain' }, deck, value }];
-      case 'crossfader':
-        return [{ type: 'value', control: { type: 'crossfader' }, value }];
-      default:
-        break;
-      }
-
-      // Parse EQ events
-      if (control.group.includes('EqualizerRack')) {
-        switch (control.key) {
-        case 'parameter1':
-          return [{ type: 'value', control: { type: 'lows' }, deck, value }];
-        case 'parameter2':
-          return [{ type: 'value', control: { type: 'mids' }, deck, value }];
-        case 'parameter3':
-          return [{ type: 'value', control: { type: 'highs' }, deck, value }];
-        }
-      }
-
-      // Parse parameterized events
-      // TODO: Deal with fractions?
-      const beatloopToggle = /beatloop_(\d+)_toggle/.exec(control.key);
-      if (beatloopToggle) {
-        return [{ type: 'press', control: { type: 'loopToggle', beats: parseInt(beatloopToggle[1]) }, deck, down }];
+      const action = makePressAction(control.group, control.key, down)
+                  ?? makeValueAction(control.group, control.key, value);
+      if (action) {
+        return [action];
       }
     }
 
+    // Fall back to no actions
     return [];
   }
 
