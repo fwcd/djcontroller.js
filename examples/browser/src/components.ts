@@ -14,13 +14,18 @@ export type VerticalAlignment = 'top' | 'center' | 'bottom';
 export type Component = (ctx: CanvasRenderingContext2D | undefined, start: Vec2) => Vec2;
 
 /** Adds two 2D vectors. */
-function add(lhs: PartialVec2, rhs: PartialVec2): Vec2 {
+export function add(lhs: PartialVec2, rhs: PartialVec2): Vec2 {
   return { x: (lhs.x ?? 0) + (rhs.x ?? 0), y: (lhs.y ?? 0) + (rhs.y ?? 0) };
 }
 
 /** Scales a 2D vector. */
-function scale(lhs: PartialVec2, rhs: number): Vec2 {
+export function scale(lhs: PartialVec2, rhs: number): Vec2 {
   return { x: (lhs.x ?? 0) * rhs, y: (lhs.y ?? 0) * rhs };
+}
+
+/** Swaps the components of a 2D vector. */
+export function transpose(vec: Vec2): Vec2 {
+  return { y: vec.x, x: vec.y };
 }
 
 /** Computes the aligned offset within the given bounds. */

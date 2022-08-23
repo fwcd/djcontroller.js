@@ -1,30 +1,36 @@
-import { Component, hStack, padding, rectangle, spacer, translation, vStack, zStack } from './components';
+import { Component, hStack, padding, rectangle, spacer, translation, transpose, Vec2, vStack, zStack } from './components';
 import { ControllerState, DeckState } from './state';
 
 function faderView(
   value: number,
   options: {
     thumbWidth?: number;
-    trackHeight?: number,
+    trackLength?: number,
     inverted?: boolean,
+    horizontal?: boolean,
   } = {}
 ): Component {
-  const thumbSize = { x: options.thumbWidth ?? 40, y: 10 };
-  const trackSize = { x: 5, y: options.trackHeight ?? 100 };
+  const directional = (v: Vec2) => options.horizontal ? transpose(v) : v;
+  const thumbWidth = options.thumbWidth ?? 40;
+  const thumbThickness = 10;
+  const trackLength = options.trackLength ?? 100;
+  const thumbSize = directional({ x: thumbWidth, y: thumbThickness });
+  const trackSize = directional({ x: 5, y: trackLength });
   return zStack([
     rectangle(trackSize, { fill: 'gray' }),
     translation(
       rectangle(thumbSize, { fill: 'black' }),
-      { y: (options.inverted ? value : (1 - value)) * (trackSize.y - thumbSize.y) }
+      directional({ x: 0, y: (options.inverted ? (1 - value) : value) * (trackLength - thumbThickness) })
     ),
   ], {
-    vAlignment: 'top',
+    vAlignment: options.horizontal ? 'center' : 'top',
+    hAlignment: options.horizontal ? 'leading' : 'center',
   });
 }
 
 function deckView(deckState: DeckState): Component {
   return hStack([
-    faderView(deckState.rate),
+    faderView(deckState.rate, { inverted: true }),
   ]);
 }
 
@@ -36,7 +42,7 @@ function eqView(deckState: DeckState): Component {
 function mixerView(deckState: DeckState): Component {
   return vStack([
     eqView(deckState),
-    faderView(deckState.volume),
+    faderView(deckState.volume, { inverted: true }),
   ]);
 }
 
@@ -45,7 +51,12 @@ export function controllerView(state: ControllerState): Component {
     padding(vStack([
       ...[0, 2].map(i => padding(deckView(state.decks[i]))),
     ])),
-    ...[2, 0, 1, 3].map(i => padding(mixerView(state.decks[i]))),
+    vStack([
+      hStack([
+        ...[2, 0, 1, 3].map(i => padding(mixerView(state.decks[i]))),
+      ]),
+      faderView(state.crossfader, { horizontal: true }),
+    ]),
     padding(vStack([
       ...[1, 3].map(i => padding(deckView(state.decks[i]))),
     ])),
