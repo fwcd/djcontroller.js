@@ -260,9 +260,9 @@ export function text(
     ctx.fillStyle = color;
     const metrics = ctx.measureText(text);
     if (doRender) {
-      ctx.fillText(text, 0, metrics.fontBoundingBoxAscent);
+      ctx.fillText(text, 0, metrics.actualBoundingBoxAscent);
     }
-    return { x: metrics.width, y: metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent };
+    return { x: metrics.width, y: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent };
   };
 }
 
