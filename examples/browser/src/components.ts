@@ -1,3 +1,5 @@
+import { Cached } from "./cached";
+
 /** A 2D vector. */
 export type Vec2 = { x: number; y: number; }
 
@@ -86,8 +88,9 @@ export function hStack(
   } = {}
 ): Component {
   const alignment = options.alignment ?? 'center';
+  const sizesCache = new Cached<Vec2[]>();
   return (ctx, doRender) => {
-    const sizes = components.map(c => componentSize(ctx, c));
+    const sizes = sizesCache.get(() => components.map(c => componentSize(ctx, c)));
     const totalHeight = sizes.reduce((acc, size) => Math.max(acc, size.y), 0);
     let pos = { x: 0, y: 0 };
     let totalSize = { x: 0, y: 0 };
@@ -113,8 +116,9 @@ export function vStack(
   } = {}
 ): Component {
   const alignment = options.alignment ?? 'center';
+  const sizesCache = new Cached<Vec2[]>();
   return (ctx, doRender) => {
-    const sizes = components.map(c => componentSize(ctx, c));
+    const sizes = sizesCache.get(() => components.map(c => componentSize(ctx, c)));
     const totalWidth = sizes.reduce((acc, size) => Math.max(acc, size.x), 0);
     let pos = { x: 0, y: 0 };
     let totalSize = { x: 0, y: 0 };
@@ -142,8 +146,9 @@ export function zStack(
 ): Component {
   const hAlignment = options.hAlignment ?? 'center';
   const vAlignment = options.vAlignment ?? 'center';
+  const sizesCache = new Cached<Vec2[]>();
   return (ctx, doRender) => {
-    const sizes = components.map(c => componentSize(ctx, c));
+    const sizes = sizesCache.get(() => components.map(c => componentSize(ctx, c)));
     const totalSize = sizes.reduce((acc, size) => ({ x: Math.max(acc.x, size.x), y: Math.max(acc.y, size.y) }), { x: 0, y: 0 });
     components.forEach((component, i) => {
       const size = sizes[i];
