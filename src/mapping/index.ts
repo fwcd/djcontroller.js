@@ -20,17 +20,19 @@ export interface ControllerMapping {
 
   /**
    * Determines the actions to take based on the
-   * given MIDI message.
+   * given MIDI message. Note that this method is
+   * _not_ pure and may update internal state.
    * 
    * @param msg The received MIDI message
    */
-  fromMidi(msg: MidiMessage): Action[];
+  handleIncoming(msg: MidiMessage): Action[];
 
   /**
    * Converts the given output action to MIDI
-   * messages.
+   * messages. Note that this method is
+   * _not_ pure and may update internal state.
    * 
    * @param output The output action to be sent
    */
-  toMidi(output: Output): MidiMessage[];
+  prepareOutgoing(output: Output): MidiMessage[];
 }

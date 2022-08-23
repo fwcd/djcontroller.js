@@ -112,7 +112,7 @@ export class MixxxControllerMapping implements ControllerMapping {
     return this.midiMapping.info;
   }
 
-  fromMidi(msg: MidiMessage): Action[] {
+  handleIncoming(msg: MidiMessage): Action[] {
     const control = this.midiMapping.controls.find(c => c.status === msg.status && c.midino === msg.data[0]);
     if (!control) {
       return [];
@@ -173,7 +173,7 @@ export class MixxxControllerMapping implements ControllerMapping {
     return [];
   }
 
-  toMidi(output: Output): MidiMessage[] {
+  prepareOutgoing(output: Output): MidiMessage[] {
     // TODO
     return [];
   }
