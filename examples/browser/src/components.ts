@@ -37,10 +37,13 @@ export function vStack(components: Component[]): Component {
   };
 }
 
-export function rectangle(size: Vec2, fill?: string | CanvasGradient | CanvasPattern): Component {
+export function rectangle(
+  size: Vec2,
+  options: { fill?: string | CanvasGradient | CanvasPattern }
+): Component {
   return (ctx, start) => {
-    if (fill) {
-      ctx.fillStyle = fill;
+    if (options.fill) {
+      ctx.fillStyle = options.fill;
     }
     ctx.fillRect(start.x, start.y, size.x, size.y);
     return size;
@@ -51,4 +54,36 @@ export function spacer(size: Vec2): Component {
   return () => {
     return size;
   };
+}
+
+export function padding(
+  component: Component,
+  options: {
+    size?: number,
+    horizontal?: boolean,
+    vertical?: boolean,
+  }
+): Component {
+  const size = options.size ?? 10;
+  let wrapped = component;
+
+  if (options.horizontal ?? true) {
+    const hSpace = { x: size, y: 0 };
+    wrapped = hStack([
+      spacer(hSpace),
+      wrapped,
+      spacer(hSpace),
+    ]);
+  }
+
+  if (options.vertical ?? true) {
+    const vSpace = { x: 0, y: size };
+    wrapped = vStack([
+      spacer(vSpace),
+      wrapped,
+      spacer(vSpace),
+    ]);
+  }
+
+  return wrapped;
 }

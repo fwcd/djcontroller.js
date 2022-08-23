@@ -2,7 +2,7 @@ import mc7000XmlSrc from '../controllers/Denon-MC7000.midi.xml';
 import mc7000JsSrc from '../controllers/Denon-MC7000-scripts.js';
 
 import { MidiMessage, MixxxControllerMapping } from 'dj-controller';
-import { Component, hStack, rectangle, spacer, vStack } from './components';
+import { Component, hStack, padding, rectangle, vStack } from './components';
 
 // Set up an example mapping (in this case the MC7000 mapping)
 const mapping = MixxxControllerMapping.parse(mc7000XmlSrc, mc7000JsSrc);
@@ -52,14 +52,13 @@ function controllerView(): Component {
   // TODO: An actual view
   return vStack([
     hStack([
-      rectangle({ x: 10, y: 30 }, 'red'),
-      rectangle({ x: 23, y: 15 }, 'orange'),
+      rectangle({ x: 10, y: 30 }, { fill: 'red' }),
+      rectangle({ x: 23, y: 15 }, { fill: 'orange' }),
     ]),
     hStack([
-      rectangle({ x: 90, y: 20 }, 'yellow'),
-      spacer({ x: 10, y: 0 }),
-      rectangle({ x: 90, y: 42 }, 'green'),
-      rectangle({ x: 90, y: 30 }, 'blue'),
+      rectangle({ x: 90, y: 20 }, { fill: 'yellow' }),
+      padding(rectangle({ x: 90, y: 42 }, { fill: 'green' }), { vertical: false }),
+      rectangle({ x: 90, y: 30 }, { fill: 'blue' }),
     ]),
   ]);
 }
