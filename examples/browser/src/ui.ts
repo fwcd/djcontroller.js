@@ -1,4 +1,4 @@
-import { circle, Component, hStack, line, padding, rectangle, rotation, spacer, translation, transpose, Vec2, vStack, zStack } from './components';
+import { circle, Component, hStack, line, padding, rectangle, rotation, spacer, text, translation, transpose, Vec2, vStack, zStack } from './components';
 import { ControllerState, DeckState } from './state';
 
 function faderView(
@@ -63,16 +63,25 @@ function deckView(deckState: DeckState): Component {
 function eqView(deckState: DeckState): Component {
   return vStack([
     encoderView(deckState.highs, { stroke: '#9670ff' }),
+    text('hi', { color: 'gray' }),
     encoderView(deckState.mids, { stroke: '#1aff00' }),
+    text('mid', { color: 'gray' }),
     encoderView(deckState.lows, { stroke: '#eb0000' }),
-  ].map(c => padding(c, { size: 2, horizontal: false })));
+    text('low', { color: 'gray' }),
+  ]);
 }
 
 function mixerView(deckState: DeckState): Component {
   return vStack([
-    encoderView(deckState.gain),
+    vStack([
+      encoderView(deckState.gain),
+      text('gain', { color: 'gray' }),
+    ]),
     eqView(deckState),
-    faderView(deckState.volume, { inverted: true }),
+    vStack([
+      faderView(deckState.volume, { inverted: true }),
+      text('vol', { color: 'gray' }),
+    ]),
   ].map(c => padding(c, { size: 10, horizontal: false })));
 }
 

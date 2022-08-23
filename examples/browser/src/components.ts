@@ -250,17 +250,19 @@ export function text(
   text: string,
   options: {
     font?: string,
+    color?: string,
   } = {}
 ): Component {
+  const font = options.font ?? '12px sans-serif';
+  const color = options.color ?? 'black';
   return (ctx, doRender) => {
-    if (options.font) {
-      ctx.font = options.font;
-    }
-    if (doRender) {
-      ctx.fillText(text, 0, 0);
-    }
+    ctx.font = font;
+    ctx.fillStyle = color;
     const metrics = ctx.measureText(text);
-    return { x: metrics.width, y: metrics.fontBoundingBoxAscent };
+    if (doRender) {
+      ctx.fillText(text, 0, metrics.fontBoundingBoxAscent);
+    }
+    return { x: metrics.width, y: metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent };
   };
 }
 
