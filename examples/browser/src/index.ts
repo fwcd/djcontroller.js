@@ -29,54 +29,6 @@ const mapping = MixxxControllerMapping.parse(mc7000XmlSrc, mc7000JsSrc);
 // Print some info about the mapping
 console.log(JSON.stringify(mapping.info, null, 2))
 
-function handleMidiMessageEvent(event: any) {
-  if (!('data' in event)) {
-    console.warn('Ignoring MIDI event without data');
-    return;
-  }
-  const [status, ...data] = event.data as Uint8Array;
-
-  const midiMsg: MidiMessage = { status, data };
-  const actions = mapping.handleIncoming(midiMsg);
-
-  console.log(`MIDI message: Status: ${status.toString(16)}, data: ${data.map(n => n.toString(16))} -> ${JSON.stringify(actions)}`);
-
-  for (const action of actions) {
-    if (action.type === 'value') {
-      const deck = action.deck;
-      const innerState: any = deck ? state.decks[deck - 1] : state;
-      if (action.control.type in innerState) {
-        innerState[action.control.type] = action.value;
-      }
-    }
-  }
-}
-
-async function initializeMidi() {
-  if (!('requestMIDIAccess' in navigator)) {
-    console.warn('Web MIDI is not supported by this browser!');
-    return;
-  }
-
-  // Request access to MIDI devices
-  const midiAccess = await navigator.requestMIDIAccess();
-
-  function registerMidiListeners() {
-    let inputCount = 0;
-    midiAccess.inputs.forEach(input => {
-      input.addEventListener('midimessage', handleMidiMessageEvent);
-      inputCount++;
-    });
-    console.log(`${inputCount} MIDI input(s) available`);
-  }
-
-  // Register MIDI input listeners
-  registerMidiListeners();
-  midiAccess.addEventListener('statechange', () => {
-    registerMidiListeners();
-  });
-}
-
 function faderView(
   value: number,
   options: {
@@ -130,14 +82,64 @@ function controllerView(state: ControllerState): Component {
   ]);
 }
 
-function initializeView() {
+function renderView() {
   const canvas = document.getElementById('controller-view') as HTMLCanvasElement;
   const view = controllerView(state);
 
   render(view, canvas, { resizeToFit: true });
 }
 
+function handleMidiMessageEvent(event: any) {
+  if (!('data' in event)) {
+    console.warn('Ignoring MIDI event without data');
+    return;
+  }
+  const [status, ...data] = event.data as Uint8Array;
+
+  const midiMsg: MidiMessage = { status, data };
+  const actions = mapping.handleIncoming(midiMsg);
+
+  console.log(`MIDI message: Status: ${status.toString(16)}, data: ${data.map(n => n.toString(16))} -> ${JSON.stringify(actions)}`);
+
+  for (const action of actions) {
+    if (action.type === 'value') {
+      const deck = action.deck;
+      const innerState: any = deck ? state.decks[deck - 1] : state;
+      if (action.control.type in innerState) {
+        innerState[action.control.type] = action.value;
+      }
+    }
+  }
+
+  renderView();
+}
+
+async function initializeMidi() {
+  if (!('requestMIDIAccess' in navigator)) {
+    console.warn('Web MIDI is not supported by this browser!');
+    return;
+  }
+
+  // Request access to MIDI devices
+  const midiAccess = await navigator.requestMIDIAccess();
+
+  function registerMidiListeners() {
+    let inputCount = 0;
+    midiAccess.inputs.forEach(input => {
+      input.addEventListener('midimessage', handleMidiMessageEvent);
+      inputCount++;
+    });
+    console.log(`${inputCount} MIDI input(s) available`);
+  }
+
+  // Register MIDI input listeners
+  registerMidiListeners();
+  midiAccess.addEventListener('statechange', () => {
+    registerMidiListeners();
+  });
+}
+
 window.addEventListener('load', async () => {
   initializeMidi();
-  initializeView();
+  renderView();
 });
