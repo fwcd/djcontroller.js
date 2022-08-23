@@ -4,7 +4,7 @@ import { ControllerMapping, MappingInfo } from ".";
 import { Action, BaseAction, PressAction, PressControl, ValueAction, ValueControl } from "../action";
 import { MidiMessage } from "../midi";
 import { Output } from "../output";
-import { evalToContext, getByKeyPath, isXmlElement, xmlChildrenToObject } from "../utils";
+import { evalScript, getByKeyPath, isXmlElement, xmlChildrenToObject } from "../utils";
 
 interface BaseMapping {
   group: string;
@@ -26,7 +26,7 @@ interface OutputMapping extends BaseMapping {
 
 interface ScriptFile {
   fileName: string;
-  functionPrefix: string;
+  functionPrefix?: string;
 }
 
 interface MidiMapping {
@@ -216,20 +216,24 @@ export class MixxxControllerMapping implements ControllerMapping {
     const xmlMapping = parseXml(xmlMappingSrc);
     const midiMapping = parseMidiMapping(xmlMapping);
     const sharedActions: Action[] = [];
-    let combinedScriptContext: object = {};
+    const scriptContext: object = {};
     
     // Load referenced scripts
     for (const scriptFile of midiMapping.scriptFiles) {
       const scriptSrc = scriptSrcLoader(scriptFile.fileName);
-      const scriptContext = evalToContext(scriptSrc, {
+
+      const result = evalScript(scriptSrc, {
         engine: new InScriptEngineProxy(sharedActions),
         script: new InScriptScriptProxy(),
         print: console.log,
-      });
-      combinedScriptContext = { ...combinedScriptContext, ...scriptContext };
+      }, scriptFile.functionPrefix);
+
+      if (scriptFile.functionPrefix) {
+        scriptContext[scriptFile.functionPrefix] = result;
+      }
     }
     
-    return new MixxxControllerMapping(midiMapping, combinedScriptContext, sharedActions);
+    return new MixxxControllerMapping(midiMapping, scriptContext, sharedActions);
   }
 
   get info(): MappingInfo {

@@ -12,7 +12,7 @@ export function isXmlElement(node: XmlNode): node is XmlElement {
  * A convenience function for converting an array of
  * XML child nodes to an object.
  * 
- * @param children The array of children to convert
+ * @param xml The array of children or node containing children.
  * @returns An object keyed by the name of the child elements
  */
 export function xmlChildrenToObject(xml: { children: XmlNode[] } | XmlNode[]): { [name: string]: XmlElement } {
@@ -29,42 +29,20 @@ export function xmlChildrenToObject(xml: { children: XmlNode[] } | XmlNode[]): {
 }
 
 /**
- * Finds variables and functions bound at the top-level.
- * 
- * @param jsSrc A piece of JS source code
- * @returns Top-level bindings
- */
-function findTopLevelBindings(jsSrc: string): string[] {
-  const bindings: string[] = [];
-
-  // TODO: This heuristic assumes that variables are top-level iff
-  //       they have no indentation. It would be better to actually
-  //       track scopes (e.g. by parsing curly brackets).
-  const pattern = /^(?:var|function)\s+(\w+)/gm;
-
-  let match: RegExpExecArray;
-  while (match = pattern.exec(jsSrc)) {
-    bindings.push(match[1]);
-  }
-
-  return bindings;
-}
-
-/**
  * Evaluates the given snippet of JS code and returns
  * variables and functions bound at the top level.
  * 
  * @param args Values to provide that will be in scope during execution
  * @param jsSrc A piece of JS source code
+ * @param returnVarName The variable name to return
  * @returns An object holding variables and functions bound at the top level
  */
-export function evalToContext(jsSrc: string, args: object = {}): object {
+export function evalScript(jsSrc: string, args: object = {}, returnVarName?: string): any {
   // TODO: Global bindings a la 'varName = ...' still escape.
   // We should investigate isolating the execution context more
   // (web workers?) or at least rewrite them using a regex.
-  const varNames = findTopLevelBindings(jsSrc);
   const argNames = Object.keys(args);
-  const script = new Function(...argNames, `${jsSrc}; return { ${varNames.join(', ')} };`);
+  const script = new Function(...argNames, `${jsSrc}; return ${returnVarName ?? 'undefined'};`);
   return script(...argNames.map(a => args[a]));
 }
 
