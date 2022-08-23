@@ -35,12 +35,8 @@ function initializeMappingPicker() {
 
   function reloadMapping() {
     const xmlFileName = mappingPicker.options[mappingPicker.selectedIndex].value;
-    // TODO: Read scripts from XML file instead (perhaps in MixxxControllerMapping.parse
-    //       by passing all mappingFiles).
-    const jsFileName = xmlFileName.replace(/\.midi\.xml$/, '.js');
     const xmlMappingSrc = mappingFiles.get(xmlFileName);
-    const jsMappingSrc = mappingFiles.get(jsFileName);
-    mapping = MixxxControllerMapping.parse(xmlMappingSrc, jsMappingSrc);
+    mapping = MixxxControllerMapping.parse(xmlMappingSrc, scriptFileName => mappingFiles.get(scriptFileName));
     renderView();
   }
 

@@ -15,7 +15,7 @@ export function isXmlElement(node: XmlNode): node is XmlElement {
  * @param children The array of children to convert
  * @returns An object keyed by the name of the child elements
  */
-export function xmlToObject(xml: { children: XmlNode[] } | XmlNode[]): { [name: string]: XmlElement } {
+export function xmlChildrenToObject(xml: { children: XmlNode[] } | XmlNode[]): { [name: string]: XmlElement } {
   const obj: { [name: string]: XmlElement } = {};
   const children = Array.isArray(xml) ? xml : xml.children;
 

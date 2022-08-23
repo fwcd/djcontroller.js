@@ -4,7 +4,7 @@ import { ControllerMapping, MappingInfo } from ".";
 import { Action, BaseAction, PressAction, PressControl, ValueAction, ValueControl } from "../action";
 import { MidiMessage } from "../midi";
 import { Output } from "../output";
-import { evalToContext, getByKeyPath, isXmlElement, xmlToObject } from "../utils";
+import { evalToContext, getByKeyPath, isXmlElement, xmlChildrenToObject } from "../utils";
 
 interface BaseMapping {
   group: string;
@@ -24,8 +24,14 @@ interface OutputMapping extends BaseMapping {
   off?: number;
 }
 
+interface ScriptFile {
+  fileName: string;
+  functionPrefix: string;
+}
+
 interface MidiMapping {
   info: MappingInfo;
+  scriptFiles: ScriptFile[];
   // TODO: Use Maps for efficiency?
   // Or perhaps only internally in ControllerMapping since it's
   // an implementation detail?
@@ -34,7 +40,7 @@ interface MidiMapping {
 }
 
 function parseMappingInfo(xml: XmlElement): MappingInfo {
-  const childs = xmlToObject(xml);
+  const childs = xmlChildrenToObject(xml);
   return {
     name: childs.name?.text,
     author: childs.author?.text,
@@ -43,7 +49,7 @@ function parseMappingInfo(xml: XmlElement): MappingInfo {
 }
 
 function parseBaseMapping(xml: XmlElement): BaseMapping {
-  const childs = xmlToObject(xml);
+  const childs = xmlChildrenToObject(xml);
   return {
     group: childs.group.text,
     key: childs.key.text,
@@ -53,7 +59,7 @@ function parseBaseMapping(xml: XmlElement): BaseMapping {
 }
 
 function parseControlMapping(xml: XmlElement): ControlMapping {
-  const childs = xmlToObject(xml);
+  const childs = xmlChildrenToObject(xml);
   return {
     ...parseBaseMapping(xml),
     options: childs.options?.children.flatMap(c => isXmlElement(c) ? [c.name.toLowerCase()] : []) ?? [],
@@ -62,18 +68,27 @@ function parseControlMapping(xml: XmlElement): ControlMapping {
 
 function parseOutputMapping(xml: XmlElement): OutputMapping {
   // TODO
-  const childs = xmlToObject(xml);
+  const childs = xmlChildrenToObject(xml);
   return {
     ...parseBaseMapping(xml),
   };
 }
 
+function parseScriptFile(xml: XmlElement): ScriptFile {
+  const attrs = xml.attributes;
+  return {
+    fileName: attrs.filename,
+    functionPrefix: attrs.functionprefix,
+  };
+}
+
 function parseMidiMapping(xml: XmlDocument): MidiMapping {
   const preset = xml.root;
-  const childs = isXmlElement(preset) ? xmlToObject(preset) : null;
-  const controller = childs.controller ? xmlToObject(childs.controller.children) : {};
+  const childs = isXmlElement(preset) ? xmlChildrenToObject(preset) : null;
+  const controller = childs.controller ? xmlChildrenToObject(childs.controller.children) : {};
   return {
     info: childs.info ? parseMappingInfo(childs.info) : {},
+    scriptFiles: controller?.scriptfiles?.children.flatMap(c => isXmlElement(c) ? [parseScriptFile(c)] : []) ?? [],
     controls: controller?.controls?.children.flatMap(c => isXmlElement(c) ? [parseControlMapping(c)] : []) ?? [],
     outputs: controller?.outputs?.children.flatMap(c => isXmlElement(c) ? [parseOutputMapping(c)] : []) ?? [],
   };
@@ -191,22 +206,30 @@ export class MixxxControllerMapping implements ControllerMapping {
   ) {}
 
   /**
-   * Parses a Mixxx controller mapping.
+   * Parses a Mixxx controller mapping and loads referenced scripts.
    * 
    * @param xmlMappingSrc The XML source of the mapping
-   * @param jsMappingSrc The JS source of the mapping (if present)
+   * @param scriptSrcLoader Loads the script source for a given file name
    * @returns The controller mapping
    */
-  static parse(xmlMappingSrc: string, jsMappingSrc?: string): MixxxControllerMapping {
+  static parse(xmlMappingSrc: string, scriptSrcLoader: (fileName: string) => string): MixxxControllerMapping {
     const xmlMapping = parseXml(xmlMappingSrc);
     const midiMapping = parseMidiMapping(xmlMapping);
     const sharedActions: Action[] = [];
-    const scriptContext = jsMappingSrc ? evalToContext(jsMappingSrc, {
-      engine: new InScriptEngineProxy(sharedActions),
-      script: new InScriptScriptProxy(),
-      print: console.log,
-    }) : {};
-    return new MixxxControllerMapping(midiMapping, scriptContext, sharedActions);
+    let combinedScriptContext: object = {};
+    
+    // Load referenced scripts
+    for (const scriptFile of midiMapping.scriptFiles) {
+      const scriptSrc = scriptSrcLoader(scriptFile.fileName);
+      const scriptContext = evalToContext(scriptSrc, {
+        engine: new InScriptEngineProxy(sharedActions),
+        script: new InScriptScriptProxy(),
+        print: console.log,
+      });
+      combinedScriptContext = { ...combinedScriptContext, ...scriptContext };
+    }
+    
+    return new MixxxControllerMapping(midiMapping, combinedScriptContext, sharedActions);
   }
 
   get info(): MappingInfo {
