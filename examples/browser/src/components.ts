@@ -214,10 +214,15 @@ export function padding(
 /** Wraps the component in an offset. */
 export function translation(
   component: Component,
-  offset: PartialVec2
+  offset: Vec2
 ): Component {
   return (ctx, start) => {
-    const size = component(ctx, add(start, offset));
+    const size = componentSize(component);
+    if (ctx) {
+      ctx.translate(offset.x, offset.y);
+      component(ctx, start);
+      ctx.translate(-offset.x, -offset.y);
+    }
     return add(size, offset);
   };
 }
