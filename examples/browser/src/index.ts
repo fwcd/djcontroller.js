@@ -17,7 +17,7 @@ function handleMidiMessageEvent(event: any) {
   const [status, ...data] = event.data as Uint8Array;
 
   const midiMsg: MidiMessage = { status, data };
-  const actions = mapping.fromMidi(midiMsg);
+  const actions = mapping.handleIncoming(midiMsg);
 
   console.log(`MIDI message: Status: ${status.toString(16)}, data: ${data.map(n => n.toString(16))} -> ${JSON.stringify(actions)}`);
 }
