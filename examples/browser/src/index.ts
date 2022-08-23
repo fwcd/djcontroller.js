@@ -2,7 +2,26 @@ import mc7000XmlSrc from '../controllers/Denon-MC7000.midi.xml';
 import mc7000JsSrc from '../controllers/Denon-MC7000-scripts.js';
 
 import { MidiMessage, MixxxControllerMapping } from 'dj-controller';
-import { Component, hStack, padding, rectangle, render, translation, Vec2, vStack, zStack } from './components';
+import { Component, hStack, padding, rectangle, render, spacer, translation, Vec2, vStack, zStack } from './components';
+
+interface DeckState {
+  lows: number;
+  mids: number;
+  highs: number;
+  volume: number;
+  rate: number;
+}
+
+interface ControllerState {
+  crossfader: number;
+  decks: DeckState[];
+}
+
+// The DJ controller state.
+const state: ControllerState = {
+  crossfader: 0,
+  decks: Array.from({ length: 4 }, () => ({ lows: 0, mids: 0, highs: 0, volume: 0, rate: 0.5 })),
+};
 
 // Set up an example mapping (in this case the MC7000 mapping)
 const mapping = MixxxControllerMapping.parse(mc7000XmlSrc, mc7000JsSrc);
@@ -21,6 +40,16 @@ function handleMidiMessageEvent(event: any) {
   const actions = mapping.handleIncoming(midiMsg);
 
   console.log(`MIDI message: Status: ${status.toString(16)}, data: ${data.map(n => n.toString(16))} -> ${JSON.stringify(actions)}`);
+
+  for (const action of actions) {
+    if (action.type === 'value') {
+      const deck = action.deck;
+      const innerState: any = deck ? state.decks[deck - 1] : state;
+      if (action.control.type in innerState) {
+        innerState[action.control.type] = action.value;
+      }
+    }
+  }
 }
 
 async function initializeMidi() {
@@ -53,6 +82,7 @@ function faderView(
   options: {
     thumbWidth?: number;
     trackHeight?: number,
+    inverted?: boolean,
   } = {}
 ): Component {
   const thumbSize = { x: options.thumbWidth ?? 40, y: 10 };
@@ -61,32 +91,48 @@ function faderView(
     rectangle(trackSize, { fill: 'gray' }),
     translation(
       rectangle(thumbSize, { fill: 'black' }),
-      { y: value * trackSize.y }
+      { y: options.inverted ? value * trackSize.y : (1 - value) * trackSize.y }
     ),
   ], {
     vAlignment: 'top',
   });
 }
 
-function controllerView(): Component {
-  // TODO: An actual view
+function deckView(deckState: DeckState): Component {
+  return hStack([
+    faderView(deckState.rate),
+  ]);
+}
+
+function eqView(deckState: DeckState): Component {
+  // TODO
+  return spacer();
+}
+
+function mixerView(deckState: DeckState): Component {
   return vStack([
-    hStack([
-      rectangle({ x: 10, y: 30 }, { fill: 'red' }),
-      rectangle({ x: 23, y: 15 }, { fill: 'orange' }),
-    ]),
-    hStack([
-      rectangle({ x: 90, y: 20 }, { fill: 'yellow' }),
-      padding(rectangle({ x: 90, y: 42 }, { fill: 'green' }), { vertical: false }),
-      rectangle({ x: 90, y: 30 }, { fill: 'blue' }),
-    ]),
-    faderView(0.5),
-  ], { alignment: 'leading' });
+    eqView(deckState),
+    faderView(deckState.volume),
+  ]);
+}
+
+function controllerView(state: ControllerState): Component {
+  return hStack([
+    padding(vStack([
+      deckView(state.decks[0]),
+      deckView(state.decks[1]),
+    ])),
+    ...state.decks.map(d => padding(mixerView(d))),
+    padding(vStack([
+      deckView(state.decks[1]),
+      deckView(state.decks[2]),
+    ])),
+  ]);
 }
 
 function initializeView() {
   const canvas = document.getElementById('controller-view') as HTMLCanvasElement;
-  const view = controllerView();
+  const view = controllerView(state);
 
   render(view, canvas, { resizeToFit: true });
 }

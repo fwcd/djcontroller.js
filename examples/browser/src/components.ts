@@ -161,7 +161,7 @@ export function rectangle(
 }
 
 /** Creates a primitive empty component with a fixed size. */
-export function spacer(size: Vec2): Component {
+export function spacer(size: Vec2 = { x: 0, y: 0 }): Component {
   return () => {
     return size;
   };
