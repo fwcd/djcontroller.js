@@ -4,6 +4,12 @@ export type Vec2 = { x: number; y: number; }
 /** A partial 2D vector. */
 export type PartialVec2 = { x?: number; y?: number; }
 
+/** An alignment along the x-axis. */
+export type HorizontalAlignment = 'leading' | 'center' | 'trailing';
+
+/** An alignment along the y-axis. */
+export type VerticalAlignment = 'top' | 'center' | 'bottom';
+
 /** A component that can be rendered to a canvas at a given position. */
 export type Component = (ctx: CanvasRenderingContext2D | undefined, start: Vec2) => Vec2;
 
@@ -15,6 +21,22 @@ function add(lhs: PartialVec2, rhs: PartialVec2): Vec2 {
 /** Scales a 2D vector. */
 function scale(lhs: PartialVec2, rhs: number): Vec2 {
   return { x: (lhs.x ?? 0) * rhs, y: (lhs.y ?? 0) * rhs };
+}
+
+/** Computes the aligned offset within the given bounds. */
+function align(alignment: HorizontalAlignment | VerticalAlignment, totalSize: number, size: number): number {
+  switch (alignment) {
+  case 'top':
+  case 'leading':
+    return 0;
+  case 'center':
+    return totalSize / 2 - size / 2;
+  case 'bottom':
+  case 'trailing':
+    return totalSize - size;
+  default:
+    throw new Error(`Invalid alignment: ${alignment}`);
+  }
 }
 
 /** Renders the given component to the given canvas. */
@@ -45,7 +67,7 @@ export function render(
 export function hStack(
   components: Component[],
   options: {
-    alignment?: 'top' | 'center' | 'bottom',
+    alignment?: VerticalAlignment,
   } = {}
 ): Component {
   const alignment = options.alignment ?? 'center';
@@ -56,13 +78,7 @@ export function hStack(
     let totalSize = { x: 0, y: 0 };
     components.forEach((component, i) => {
       const size = sizes[i];
-      let offset: number;
-      switch (alignment) {
-      case 'top':    offset = 0;                            break;
-      case 'center': offset = totalHeight / 2 - size.y / 2; break;
-      case 'bottom': offset = totalHeight - size.y;         break;
-      default:                                              break;
-      }
+      const offset = align(alignment, totalHeight, size.y);
       component(ctx, add(pos, { y: offset }));
       pos = add(pos, { x: size.x });
       totalSize = {
@@ -78,7 +94,7 @@ export function hStack(
 export function vStack(
   components: Component[],
   options: {
-    alignment?: 'leading' | 'center' | 'trailing',
+    alignment?: HorizontalAlignment,
   } = {}
 ): Component {
   const alignment = options.alignment ?? 'center';
@@ -89,13 +105,7 @@ export function vStack(
     let totalSize = { x: 0, y: 0 };
     components.forEach((component, i) => {
       const size = sizes[i];
-      let offset: number;
-      switch (alignment) {
-      case 'leading':  offset = 0;                           break;
-      case 'center':   offset = totalWidth / 2 - size.x / 2; break;
-      case 'trailing': offset = totalWidth - size.x;         break;
-      default:                                               break;
-      }
+      const offset = align(alignment, totalWidth, size.x);
       component(ctx, add(pos, { x: offset }));
       pos = add(pos, { y: size.y });
       totalSize = {
