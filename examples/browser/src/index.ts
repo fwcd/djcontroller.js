@@ -25,6 +25,12 @@ function renderView() {
   render(view, canvas, { resizeToFit: true });
 }
 
+function renderStatus(connectedMidiInputs: string[]) {
+  const status = document.getElementById('midi-status');
+  const detail = connectedMidiInputs.length > 0 ? `(${connectedMidiInputs.join(', ')})` : '';
+  status.innerText = `Connected MIDI inputs: ${connectedMidiInputs.length} ${detail}`;
+}
+
 function handleMidiMessageEvent(event: any) {
   if (!('data' in event)) {
     console.warn('Ignoring MIDI event without data');
@@ -60,12 +66,15 @@ async function initializeMidi() {
   const midiAccess = await navigator.requestMIDIAccess();
 
   function registerMidiListeners() {
-    let inputCount = 0;
+    let inputs: string[] = [];
+
     midiAccess.inputs.forEach(input => {
       input.addEventListener('midimessage', handleMidiMessageEvent);
-      inputCount++;
+      inputs.push(input.name);
     });
-    console.log(`${inputCount} MIDI input(s) available`);
+
+    console.log(`${inputs.length} MIDI input(s) available`);
+    renderStatus(inputs);
   }
 
   // Register MIDI input listeners
