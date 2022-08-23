@@ -69,6 +69,11 @@ export function render(
   component(ctx, start);
 }
 
+/** Compoutes the size of the given component. */
+function componentSize(component: Component): Vec2 {
+  return component(null, { x: 0, y: 0 });
+}
+
 /** Composes components horizontally. */
 export function hStack(
   components: Component[],
@@ -77,7 +82,7 @@ export function hStack(
   } = {}
 ): Component {
   const alignment = options.alignment ?? 'center';
-  const sizes = components.map(c => c(null, { x: 0, y: 0 }));
+  const sizes = components.map(componentSize);
   const totalHeight = sizes.reduce((acc, size) => Math.max(acc, size.y), 0);
   return (ctx, start) => {
     let pos = start;
@@ -104,7 +109,7 @@ export function vStack(
   } = {}
 ): Component {
   const alignment = options.alignment ?? 'center';
-  const sizes = components.map(c => c(null, { x: 0, y: 0 }));
+  const sizes = components.map(componentSize);
   const totalWidth = sizes.reduce((acc, size) => Math.max(acc, size.x), 0);
   return (ctx, start) => {
     let pos = start;
@@ -133,7 +138,7 @@ export function zStack(
 ): Component {
   const hAlignment = options.hAlignment ?? 'center';
   const vAlignment = options.vAlignment ?? 'center';
-  const sizes = components.map(c => c(null, { x: 0, y: 0 }));
+  const sizes = components.map(componentSize);
   const totalSize = sizes.reduce((acc, size) => ({ x: Math.max(acc.x, size.x), y: Math.max(acc.y, size.y) }), { x: 0, y: 0 });
   return (ctx, start) => {
     components.forEach((component, i) => {
@@ -214,5 +219,28 @@ export function translation(
   return (ctx, start) => {
     const size = component(ctx, add(start, offset));
     return add(size, offset);
+  };
+}
+
+/** Rotates the component by a certain angle (in radians), optionally with a custom anchor (offset from the center). */
+export function rotation(
+  component: Component,
+  angle: number,
+  options: {
+    anchorOffset?: Vec2,
+  } = {}
+): Component {
+  const size = componentSize(component);
+  return (ctx, start) => {
+    if (ctx) {
+      const center = add(add(start, scale(size, 0.5)), options.anchorOffset ?? {});
+      ctx.save();
+      ctx.translate(center.x, center.y);
+      ctx.rotate(angle);
+      ctx.translate(-center.x, -center.y);
+      component(ctx, start);
+      ctx.restore();
+    }
+    return size;
   };
 }
