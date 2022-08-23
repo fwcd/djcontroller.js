@@ -65,3 +65,14 @@ export function evalToContext(jsSrc: string): object {
   const script = new Function(`${jsSrc}; return { ${varNames.join(', ')} };`);
   return script();
 }
+
+/**
+ * Fetches a nested value by key path.
+ * 
+ * @param value The object to key into
+ * @param keyPath The path into the object
+ * @returns The value keyed by this path in `value`
+ */
+export function getByKeyPath(value: object, keyPath: string[]): any {
+  return keyPath.reduce((acc, key) => acc ? acc[key] : undefined, value);
+}
