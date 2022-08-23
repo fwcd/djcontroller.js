@@ -2,20 +2,9 @@ import mc7000XmlSrc from '../controllers/Denon-MC7000.midi.xml';
 import mc7000JsSrc from '../controllers/Denon-MC7000-scripts.js';
 
 import { MidiMessage, MixxxControllerMapping } from 'dj-controller';
-import { Component, hStack, padding, rectangle, render, spacer, translation, Vec2, vStack, zStack } from './components';
-
-interface DeckState {
-  lows: number;
-  mids: number;
-  highs: number;
-  volume: number;
-  rate: number;
-}
-
-interface ControllerState {
-  crossfader: number;
-  decks: DeckState[];
-}
+import type { ControllerState } from './state';
+import { controllerView } from './ui';
+import { render } from './components';
 
 // The DJ controller state.
 const state: ControllerState = {
@@ -28,59 +17,6 @@ const mapping = MixxxControllerMapping.parse(mc7000XmlSrc, mc7000JsSrc);
 
 // Print some info about the mapping
 console.log(JSON.stringify(mapping.info, null, 2))
-
-function faderView(
-  value: number,
-  options: {
-    thumbWidth?: number;
-    trackHeight?: number,
-    inverted?: boolean,
-  } = {}
-): Component {
-  const thumbSize = { x: options.thumbWidth ?? 40, y: 10 };
-  const trackSize = { x: 5, y: options.trackHeight ?? 100 };
-  return zStack([
-    rectangle(trackSize, { fill: 'gray' }),
-    translation(
-      rectangle(thumbSize, { fill: 'black' }),
-      { y: options.inverted ? value * trackSize.y : (1 - value) * trackSize.y }
-    ),
-  ], {
-    vAlignment: 'top',
-  });
-}
-
-function deckView(deckState: DeckState): Component {
-  return hStack([
-    faderView(deckState.rate),
-  ]);
-}
-
-function eqView(deckState: DeckState): Component {
-  // TODO
-  return spacer();
-}
-
-function mixerView(deckState: DeckState): Component {
-  return vStack([
-    eqView(deckState),
-    faderView(deckState.volume),
-  ]);
-}
-
-function controllerView(state: ControllerState): Component {
-  return hStack([
-    padding(vStack([
-      deckView(state.decks[0]),
-      deckView(state.decks[1]),
-    ])),
-    ...state.decks.map(d => padding(mixerView(d))),
-    padding(vStack([
-      deckView(state.decks[1]),
-      deckView(state.decks[2]),
-    ])),
-  ]);
-}
 
 function renderView() {
   const canvas = document.getElementById('controller-view') as HTMLCanvasElement;
