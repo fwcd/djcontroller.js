@@ -171,6 +171,36 @@ export function rectangle(
   };
 }
 
+/** Creates a primitive ellipse component with a fixed radius. */
+export function ellipse(
+  radius: Vec2,
+  options: {
+    fill?: string | CanvasGradient | CanvasPattern
+  } = {}
+): Component {
+  return (ctx) => {
+    if (ctx) {
+      if (options.fill) {
+        ctx.fillStyle = options.fill;
+      }
+      ctx.beginPath();
+      ctx.ellipse(radius.x, radius.y, radius.x, radius.y, 0, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    return scale(radius, 2);
+  };
+}
+
+/** Creates a primitive circle component with a fixed radius. */
+export function circle(
+  radius: number,
+  options: {
+    fill?: string | CanvasGradient | CanvasPattern
+  } = {}
+): Component {
+  return ellipse({ x: radius, y: radius }, options);
+}
+
 /** Creates a primitive empty component with a fixed size. */
 export function spacer(size: Vec2 = { x: 0, y: 0 }): Component {
   return () => {

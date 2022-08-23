@@ -1,4 +1,4 @@
-import { Component, hStack, padding, rectangle, spacer, translation, transpose, Vec2, vStack, zStack } from './components';
+import { circle, Component, hStack, padding, rectangle, spacer, translation, transpose, Vec2, vStack, zStack } from './components';
 import { ControllerState, DeckState } from './state';
 
 function faderView(
@@ -28,6 +28,13 @@ function faderView(
   });
 }
 
+function encoderView(
+  value: number,
+  options: {} = {}
+): Component {
+  return circle(20, { fill: 'blue' });
+}
+
 function deckView(deckState: DeckState): Component {
   return hStack([
     faderView(deckState.rate, { inverted: true }),
@@ -35,12 +42,16 @@ function deckView(deckState: DeckState): Component {
 }
 
 function eqView(deckState: DeckState): Component {
-  // TODO
-  return spacer();
+  return vStack([
+    encoderView(deckState.highs),
+    encoderView(deckState.mids),
+    encoderView(deckState.lows),
+  ]);
 }
 
 function mixerView(deckState: DeckState): Component {
   return vStack([
+    encoderView(deckState.gain),
     eqView(deckState),
     faderView(deckState.volume, { inverted: true }),
   ]);

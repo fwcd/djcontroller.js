@@ -9,7 +9,7 @@ import { render } from './components';
 // The DJ controller state.
 const state: ControllerState = {
   crossfader: 0,
-  decks: Array.from({ length: 4 }, () => ({ lows: 0, mids: 0, highs: 0, volume: 0, rate: 0.5 })),
+  decks: Array.from({ length: 4 }, () => ({ gain: 0.5, lows: 0.5, mids: 0.5, highs: 0.5, volume: 0, rate: 0.5 })),
 };
 
 // Set up an example mapping (in this case the MC7000 mapping)
