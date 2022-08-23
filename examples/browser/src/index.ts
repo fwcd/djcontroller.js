@@ -60,7 +60,7 @@ function controllerView(): Component {
       padding(rectangle({ x: 90, y: 42 }, { fill: 'green' }), { vertical: false }),
       rectangle({ x: 90, y: 30 }, { fill: 'blue' }),
     ]),
-  ]);
+  ], { alignment: 'leading' });
 }
 
 function initializeView() {
