@@ -142,7 +142,7 @@ function makeValueAction(group: string, key: string, value: number): ValueAction
  * instead it writes actions to the passed array (which is
  * shared with the MixxxControllerMapping instance).
  */
-class InScriptEngineFacade {
+class InScriptEngineProxy {
   constructor(private readonly sharedActions: Action[]) {}
 
   getValue(group: string, key: string): number {
@@ -193,7 +193,7 @@ export class MixxxControllerMapping implements ControllerMapping {
     const midiMapping = parseMidiMapping(xmlMapping);
     const sharedActions: Action[] = [];
     const scriptContext = jsMappingSrc ? evalToContext(jsMappingSrc, {
-      engine: new InScriptEngineFacade(sharedActions),
+      engine: new InScriptEngineProxy(sharedActions),
     }) : {};
     return new MixxxControllerMapping(midiMapping, scriptContext, sharedActions);
   }
