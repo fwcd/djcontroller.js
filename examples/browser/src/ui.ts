@@ -15,7 +15,7 @@ function faderView(
     rectangle(trackSize, { fill: 'gray' }),
     translation(
       rectangle(thumbSize, { fill: 'black' }),
-      { y: options.inverted ? value * trackSize.y : (1 - value) * trackSize.y }
+      { y: (options.inverted ? value : (1 - value)) * (trackSize.y - thumbSize.y) }
     ),
   ], {
     vAlignment: 'top',
