@@ -27,3 +27,41 @@ export function xmlToObject(xml: { children: XmlNode[] } | XmlNode[]): { [name: 
 
   return obj;
 }
+
+/**
+ * Finds variables and functions bound at the top-level.
+ * 
+ * @param jsSrc A piece of JS source code
+ * @returns Top-level bindings
+ */
+function findTopLevelBindings(jsSrc: string): string[] {
+  const bindings: string[] = [];
+
+  // TODO: This heuristic assumes that variables are top-level iff
+  //       they have no indentation. It would be better to actually
+  //       track scopes (e.g. by parsing curly brackets).
+  const pattern = /^(?:var|function)\s+(\w+)/gm;
+
+  let match: RegExpExecArray;
+  while (match = pattern.exec(jsSrc)) {
+    bindings.push(match[1]);
+  }
+
+  return bindings;
+}
+
+/**
+ * Evaluates the given snippet of JS code and returns
+ * variables and functions bound at the top level.
+ * 
+ * @param jsSrc A piece of JS source code
+ * @returns An object holding variables and functions bound at the top level
+ */
+export function evalToContext(jsSrc: string): object {
+  // TODO: Global bindings a la 'varName = ...' still escape.
+  // We should investigate isolating the execution context more
+  // (web workers?) or at least rewrite them using a regex.
+  const varNames = findTopLevelBindings(jsSrc);
+  const script = new Function(`${jsSrc}; return { ${varNames.join(', ')} };`);
+  return script();
+}
