@@ -246,6 +246,23 @@ export function spacer(size: Vec2 = { x: 0, y: 0 }): Component {
   };
 }
 
+/** Creates a primitive text component. */
+export function text(
+  text: string,
+  options: {
+    font?: string,
+  } = {}
+): Component {
+  return ctx => {
+    if (options.font) {
+      ctx.font = options.font;
+    }
+    ctx.fillText(text, 0, 0);
+    const metrics = ctx.measureText(text);
+    return { x: metrics.width, y: metrics.fontBoundingBoxAscent };
+  };
+}
+
 /** Wraps the given component in padding. */
 export function padding(
   component: Component,
