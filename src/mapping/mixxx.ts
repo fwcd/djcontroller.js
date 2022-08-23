@@ -137,7 +137,7 @@ function makeValueAction(group: string, key: string, value: number): ValueAction
 }
 
 /**
- * Provides the same API as the `engine` object in scripts.
+ * Provides the same API as the `engine` object in the script.
  * It, however, doesn't actually change any values directly,
  * instead it writes actions to the passed array (which is
  * shared with the MixxxControllerMapping instance).
@@ -160,6 +160,15 @@ class InScriptEngineProxy {
 
   setParameter(group: string, key: string, value: number) {
     this.setValue(group, key, value);
+  }
+}
+
+/**
+ * Provides the same API as the `script` object in the script.
+ */
+class InScriptScriptProxy {
+  deckFromGroup(group: string): number {
+    return deckFromGroup(group);
   }
 }
 
@@ -194,6 +203,8 @@ export class MixxxControllerMapping implements ControllerMapping {
     const sharedActions: Action[] = [];
     const scriptContext = jsMappingSrc ? evalToContext(jsMappingSrc, {
       engine: new InScriptEngineProxy(sharedActions),
+      script: new InScriptScriptProxy(),
+      print: console.log,
     }) : {};
     return new MixxxControllerMapping(midiMapping, scriptContext, sharedActions);
   }
