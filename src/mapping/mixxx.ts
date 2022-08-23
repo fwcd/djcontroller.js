@@ -56,7 +56,7 @@ function parseControlMapping(xml: XmlElement): ControlMapping {
   const childs = xmlToObject(xml);
   return {
     ...parseBaseMapping(xml),
-    options: childs.options.children.flatMap(c => isXmlElement(c) ? [c.name.toLowerCase()] : []),
+    options: childs.options?.children.flatMap(c => isXmlElement(c) ? [c.name.toLowerCase()] : []) ?? [],
   };
 }
 
@@ -74,8 +74,8 @@ function parseMidiMapping(xml: XmlDocument): MidiMapping {
   const controller = childs.controller ? xmlToObject(childs.controller.children) : {};
   return {
     info: childs.info ? parseMappingInfo(childs.info) : {},
-    controls: controller?.controls.children.flatMap(c => isXmlElement(c) ? [parseControlMapping(c)] : []) ?? [],
-    outputs: controller?.outputs.children.flatMap(c => isXmlElement(c) ? [parseOutputMapping(c)] : []) ?? [],
+    controls: controller?.controls?.children.flatMap(c => isXmlElement(c) ? [parseControlMapping(c)] : []) ?? [],
+    outputs: controller?.outputs?.children.flatMap(c => isXmlElement(c) ? [parseOutputMapping(c)] : []) ?? [],
   };
 }
 
