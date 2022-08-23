@@ -31,3 +31,19 @@ To continuously rebuild it in the background you can also use
 ```sh
 npm run watch
 ```
+
+### Examples
+
+To build and run the browser example, first make sure to have a directory named `controllers` in the repository containing controller mappings in Mixxx's format (`.midi.xml` mappings and `.js` scripts). You can download Mixxx's mappings by running
+
+```sh
+scripts/clone-mixxx-mappings
+```
+
+> **Note:** Mixxx's mappings are GPL-licensed, so if you decide to bundle them in a downstream application, make sure to comply with its licensing terms!
+
+To start a development server, you can now run
+
+```sh
+npm run -w examples/browser serve
+```
