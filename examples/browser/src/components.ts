@@ -199,3 +199,14 @@ export function padding(
 
   return wrapped;
 }
+
+/** Wraps the component in an offset. */
+export function translation(
+  component: Component,
+  offset: PartialVec2
+): Component {
+  return (ctx, start) => {
+    const size = component(ctx, add(start, offset));
+    return add(size, offset);
+  };
+}
