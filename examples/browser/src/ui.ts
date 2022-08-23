@@ -65,7 +65,7 @@ function eqView(deckState: DeckState): Component {
     encoderView(deckState.highs),
     encoderView(deckState.mids),
     encoderView(deckState.lows),
-  ]);
+  ].map(c => padding(c, { size: 2, horizontal: false })));
 }
 
 function mixerView(deckState: DeckState): Component {
@@ -73,22 +73,22 @@ function mixerView(deckState: DeckState): Component {
     encoderView(deckState.gain),
     eqView(deckState),
     faderView(deckState.volume, { inverted: true }),
-  ]);
+  ].map(c => padding(c, { size: 10, horizontal: false })));
 }
 
 export function controllerView(state: ControllerState): Component {
   return hStack([
-    padding(vStack([
+    vStack([
       ...[0, 2].map(i => padding(deckView(state.decks[i]))),
-    ])),
+    ]),
     vStack([
       hStack([
         ...[2, 0, 1, 3].map(i => padding(mixerView(state.decks[i]))),
       ]),
       faderView(state.crossfader, { horizontal: true }),
     ]),
-    padding(vStack([
+    vStack([
       ...[1, 3].map(i => padding(deckView(state.decks[i]))),
-    ])),
-  ]);
+    ]),
+  ].map(c => padding(c, { size: 20, vertical: false })));
 }
