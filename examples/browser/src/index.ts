@@ -40,6 +40,7 @@ function initializeMappingPicker() {
     renderView();
   }
 
+  // Scan mapping folder for Mixxx-style .midi.xml mappings
   for (const fileName of mappingFiles.keys()) {
     if (fileName.endsWith('.midi.xml')) {
       const mappingName = fileName.split('.')[0];
@@ -50,7 +51,16 @@ function initializeMappingPicker() {
     }
   }
 
+  // Try restoring previously selected mapping from local storage
+  const localStorageKey = 'selected-dj-controller-mapping-index';
+  const storedIndex = localStorage.getItem(localStorageKey);
+  if (storedIndex !== null) {
+    mappingPicker.selectedIndex = parseInt(storedIndex);
+  }
+
+  // Reload mapping whenever the picker changes
   mappingPicker.addEventListener('change', () => {
+    localStorage.setItem(localStorageKey, `${mappingPicker.selectedIndex}`);
     reloadMapping();
   });
   reloadMapping();
