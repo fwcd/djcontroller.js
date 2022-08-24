@@ -1,5 +1,5 @@
 {
-  "name": "dj-controller",
+  "name": "djcontroller.js",
   "version": "0.0.1",
   "description": "Library for interacting with MIDI DJ controllers",
   "workspaces": [
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fwcd/dj-controller.git"
+    "url": "git+https://github.com/fwcd/djcontroller.js.git"
   },
   "author": "fwcd",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fwcd/dj-controller/issues"
+    "url": "https://github.com/fwcd/djcontroller.js/issues"
   },
-  "homepage": "https://github.com/fwcd/dj-controller#readme",
+  "homepage": "https://github.com/fwcd/djcontroller.js#readme",
   "devDependencies": {
     "typescript": "^4.7.4"
   },

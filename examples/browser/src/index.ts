@@ -1,5 +1,5 @@
-import { MidiMessage, MixxxControllerMapping } from 'dj-controller';
-import type { ControllerMapping } from 'dj-controller';
+import { MidiMessage, MixxxControllerMapping } from 'djcontroller.js';
+import type { ControllerMapping } from 'djcontroller.js';
 import type { ControllerState } from './state';
 import { controllerView } from './ui';
 import { render } from './components';
