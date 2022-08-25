@@ -4,7 +4,7 @@ import { Cached } from "./cached";
 export type Vec2 = { x: number; y: number; }
 
 /** A partial 2D vector. */
-export type PartialVec2 = { x?: number; y?: number; }
+export type PartialVec2 = Partial<Vec2>; 
 
 /** An alignment along the x-axis. */
 export type HorizontalAlignment = 'leading' | 'center' | 'trailing';
@@ -22,12 +22,12 @@ export function add(lhs: PartialVec2, rhs: PartialVec2): Vec2 {
 
 /** Subtracts two 2D vectors. */
 export function sub(lhs: PartialVec2, rhs: PartialVec2): Vec2 {
-  return { x: (lhs.x ?? 0) - (rhs.x ?? 0), y: (lhs.y ?? 0) - (rhs.y ?? 0) };
+  return add(lhs, scale(rhs, -1));
 }
 
 /** Scales a 2D vector. */
-export function scale(lhs: PartialVec2, rhs: number): Vec2 {
-  return { x: (lhs.x ?? 0) * rhs, y: (lhs.y ?? 0) * rhs };
+export function scale({ x = 0, y = 0 }: PartialVec2, rhs: number): Vec2 {
+  return { x: x * rhs, y: y * rhs };
 }
 
 /** Swaps the components of a 2D vector. */
